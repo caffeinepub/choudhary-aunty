@@ -1,3 +1,4 @@
+import HerStorySection from "@/components/HerStorySection";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -5,6 +6,7 @@ import {
   getMakerImage,
   getProductImage,
 } from "@/constants/images";
+import { getMakerStory } from "@/constants/makerStories";
 import { useGetMakerWithProducts } from "@/hooks/useQueries";
 import { Link, useParams } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, MessageCircle } from "lucide-react";
@@ -250,6 +252,14 @@ export default function MakerDetailPage() {
           </section>
         )}
       </div>
+
+      {/* ─── Her Story Section ─── */}
+      {(() => {
+        const story = getMakerStory(makerId);
+        return story ? (
+          <HerStorySection story={story} makerName={maker.name} />
+        ) : null;
+      })()}
     </main>
   );
 }

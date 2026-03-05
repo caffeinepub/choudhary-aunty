@@ -6,7 +6,13 @@ import {
 } from "@/constants/images";
 import { Link } from "@tanstack/react-router";
 import { Heart, Mail, MapPin, Phone } from "lucide-react";
-import { SiFacebook, SiInstagram, SiWhatsapp, SiYoutube } from "react-icons/si";
+import {
+  SiFacebook,
+  SiInstagram,
+  SiWhatsapp,
+  SiX,
+  SiYoutube,
+} from "react-icons/si";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -18,45 +24,49 @@ export default function Footer() {
       <div className="h-1 bg-spice-gradient" />
 
       <div className="container mx-auto px-4 sm:px-6 py-12 max-w-7xl">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 mb-10">
           {/* Brand Column */}
-          <div className="sm:col-span-2 lg:col-span-1 lg:row-span-1">
-            <Link to="/" className="flex items-center gap-3 mb-4 group">
+          <div className="col-span-2 sm:col-span-2 lg:col-span-1 lg:row-span-1">
+            <Link to="/" className="flex items-center mb-4 group">
               <img
                 src={LOGO_IMAGE}
                 alt="Choudhary Aunty"
-                className="w-12 h-12 object-contain rounded-full bg-white/10 group-hover:bg-white/20 transition-colors"
+                className="h-16 w-auto object-contain group-hover:scale-105 transition-transform duration-200 drop-shadow-md"
               />
-              <div>
-                <div className="font-display font-bold text-cream text-lg leading-none">
-                  Choudhary Aunty
-                </div>
-                <div className="text-cream/60 text-xs tracking-wider mt-0.5 font-body">
-                  Dream has no age
-                </div>
-              </div>
             </Link>
-            <p className="text-cream/70 text-sm font-body leading-relaxed mb-5">
+            <p className="text-cream/80 text-sm font-body leading-relaxed mb-5">
               Authentic homemade regional Indian food, made with love by real
               homemakers from across India. Every jar tells a story.
             </p>
             {/* Social Icons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <a
                 href="https://instagram.com/choudharyaunty"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-saffron flex items-center justify-center transition-colors"
+                data-ocid="footer.instagram_link"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-saffron border border-white/10 hover:border-saffron flex items-center justify-center transition-all duration-200 hover:scale-110"
               >
                 <SiInstagram className="w-4 h-4" />
+              </a>
+              <a
+                href="https://x.com/choudharyaunty"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="X (Twitter)"
+                data-ocid="footer.twitter_link"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-saffron border border-white/10 hover:border-saffron flex items-center justify-center transition-all duration-200 hover:scale-110"
+              >
+                <SiX className="w-4 h-4" />
               </a>
               <a
                 href="https://facebook.com/choudharyaunty"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-saffron flex items-center justify-center transition-colors"
+                data-ocid="footer.facebook_link"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-saffron border border-white/10 hover:border-saffron flex items-center justify-center transition-all duration-200 hover:scale-110"
               >
                 <SiFacebook className="w-4 h-4" />
               </a>
@@ -65,7 +75,8 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="YouTube"
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-saffron flex items-center justify-center transition-colors"
+                data-ocid="footer.youtube_link"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-saffron border border-white/10 hover:border-saffron flex items-center justify-center transition-all duration-200 hover:scale-110"
               >
                 <SiYoutube className="w-4 h-4" />
               </a>
@@ -74,7 +85,8 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#25d366] flex items-center justify-center transition-colors"
+                data-ocid="footer.whatsapp_link"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#25d366] border border-white/10 hover:border-[#25d366] flex items-center justify-center transition-all duration-200 hover:scale-110"
               >
                 <SiWhatsapp className="w-4 h-4" />
               </a>
@@ -97,7 +109,7 @@ export default function Footer() {
                 <li key={link.to}>
                   <Link
                     to={link.to}
-                    className="text-cream/70 hover:text-saffron text-sm font-body transition-colors"
+                    className="text-cream/75 hover:text-saffron text-sm font-body transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -123,7 +135,7 @@ export default function Footer() {
                 <li key={link.to}>
                   <Link
                     to={link.to}
-                    className="text-cream/70 hover:text-saffron text-sm font-body transition-colors"
+                    className="text-cream/75 hover:text-saffron text-sm font-body transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -149,7 +161,7 @@ export default function Footer() {
                   <Link
                     to="/shop"
                     search={{ state: item.state }}
-                    className="text-cream/70 hover:text-saffron text-sm font-body transition-colors"
+                    className="text-cream/75 hover:text-saffron text-sm font-body transition-colors"
                   >
                     {item.label}
                   </Link>
@@ -168,7 +180,7 @@ export default function Footer() {
                 <Mail className="w-4 h-4 text-saffron mt-0.5 shrink-0" />
                 <a
                   href={`mailto:${CONTACT_EMAIL}`}
-                  className="text-cream/70 hover:text-saffron text-sm font-body transition-colors"
+                  className="text-cream/80 hover:text-saffron text-sm font-body transition-colors"
                 >
                   {CONTACT_EMAIL}
                 </a>
@@ -177,14 +189,14 @@ export default function Footer() {
                 <Phone className="w-4 h-4 text-saffron mt-0.5 shrink-0" />
                 <a
                   href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`}
-                  className="text-cream/70 hover:text-saffron text-sm font-body transition-colors"
+                  className="text-cream/80 hover:text-saffron text-sm font-body transition-colors"
                 >
                   {CONTACT_PHONE}
                 </a>
               </li>
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-saffron mt-0.5 shrink-0" />
-                <span className="text-cream/70 text-sm font-body">
+                <span className="text-cream/80 text-sm font-body">
                   Pan India Delivery
                 </span>
               </li>
@@ -204,12 +216,12 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-cream/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-cream/50 text-xs font-body text-center sm:text-left">
+        <div className="border-t border-cream/15 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-cream/65 text-xs font-body text-center sm:text-left">
             © {currentYear} Choudhary Aunty. All rights reserved. |
             www.choudharyaunty.com
           </p>
-          <p className="text-cream/40 text-xs font-body flex items-center gap-1">
+          <p className="text-cream/55 text-xs font-body flex items-center gap-1">
             Built with <Heart className="w-3 h-3 text-saffron fill-saffron" />{" "}
             using{" "}
             <a

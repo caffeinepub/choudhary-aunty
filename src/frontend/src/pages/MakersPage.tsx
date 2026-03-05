@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { getMakerImage } from "@/constants/images";
+import { getMakerStoryByName } from "@/constants/makerStories";
 import { useGetAllMakers } from "@/hooks/useQueries";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
@@ -116,10 +117,21 @@ export default function MakersPage() {
                         to="/maker/$id"
                         params={{ id: maker.id.toString() }}
                         className="mt-4 inline-flex items-center gap-1.5 text-saffron hover:text-terracotta font-semibold text-sm font-body transition-colors"
+                        data-ocid={`makers.meet_link.${idx + 1}`}
                       >
                         Meet {maker.name.split(" ")[0]}{" "}
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
+                      {getMakerStoryByName(maker.name) && (
+                        <Link
+                          to="/maker/$id"
+                          params={{ id: maker.id.toString() }}
+                          className="mt-1 inline-flex items-center gap-1 text-amber-700 hover:text-amber-900 text-xs font-body transition-colors italic"
+                          data-ocid={`makers.story_link.${idx + 1}`}
+                        >
+                          📖 Read Her Story
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </motion.div>

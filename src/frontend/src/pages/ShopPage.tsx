@@ -181,7 +181,7 @@ export default function ShopPage() {
               className="w-full h-full object-cover"
             />
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/10" />
             <div className="absolute inset-0 flex items-center">
               <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
                 <div className="max-w-xl text-cream">
@@ -190,17 +190,17 @@ export default function ShopPage() {
                     <Star className="w-3 h-3 fill-cream" />
                     {stateBanner.festival}
                   </span>
-                  <h2 className="font-display font-bold text-2xl sm:text-3xl text-cream mb-1 leading-tight">
+                  <h2 className="font-display font-bold text-2xl sm:text-3xl text-cream mb-1 leading-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.5)]">
                     {activeState}
                   </h2>
-                  <p className="font-body text-cream/80 text-sm mb-1 flex items-center gap-1.5">
+                  <p className="font-body text-cream text-sm mb-1 flex items-center gap-1.5 [text-shadow:0_1px_4px_rgba(0,0,0,0.5)]">
                     <MapPin className="w-3.5 h-3.5 shrink-0" />
                     {stateBanner.landmark}
                   </p>
-                  <p className="font-display italic text-base sm:text-lg text-saffron-light mb-2">
+                  <p className="font-display italic text-base sm:text-lg text-saffron mb-2 [text-shadow:0_1px_4px_rgba(0,0,0,0.4)]">
                     "{stateBanner.tagline}"
                   </p>
-                  <p className="font-body text-cream/70 text-xs mb-4">
+                  <p className="font-body text-cream/90 text-xs mb-4 [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">
                     {stateBanner.dishes}
                   </p>
                   <Link

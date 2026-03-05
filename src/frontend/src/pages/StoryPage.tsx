@@ -71,7 +71,7 @@ export default function StoryPage() {
               <br />
               <span className="text-saffron italic">to Your Table</span>
             </h1>
-            <p className="text-cream/70 text-base font-body mt-3 italic">
+            <p className="text-cream/90 text-base font-body mt-3 italic [text-shadow:0_1px_6px_rgba(0,0,0,0.5)]">
               "Sapne kabhi old nahin hote" — Dreams never grow old.
             </p>
           </motion.div>
@@ -145,7 +145,7 @@ export default function StoryPage() {
                 Dream has no age — will happen. I just keep cooking.
               </span>
             </blockquote>
-            <p className="text-cream/50 font-body text-sm mt-6 not-italic">
+            <p className="text-cream/80 font-body text-sm mt-6 not-italic">
               — Anju Choudhary, Founder
             </p>
           </motion.div>
@@ -597,10 +597,10 @@ export default function StoryPage() {
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-cream mb-2">
               Taste the Story
             </h2>
-            <p className="text-cream/70 font-body text-sm mb-2 italic">
+            <p className="text-cream/85 font-body text-sm mb-2 italic">
               "Sapne kabhi old nahin hote."
             </p>
-            <p className="text-cream/60 font-body text-xs mb-8">
+            <p className="text-cream/75 font-body text-xs mb-8">
               Every order you place supports a real woman and her family. Be
               part of this movement.
             </p>

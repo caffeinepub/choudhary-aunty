@@ -264,7 +264,7 @@
     color: oklch(var(--saffron));
   }
 
-  /* WhatsApp button */
+  /* WhatsApp button — pulsing glow to draw attention */
   .whatsapp-btn {
     background: #25d366;
     color: white;
@@ -273,11 +273,71 @@
     align-items: center;
     gap: 0.5rem;
     font-weight: 600;
-    transition: background 0.2s, transform 0.15s;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    animation: whatsapp-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   .whatsapp-btn:hover {
     background: #1da851;
-    transform: scale(1.03);
+    transform: scale(1.04);
+    animation: none;
+    box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.25);
+  }
+
+  /* Premium testimonial card */
+  .testimonial-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      145deg,
+      oklch(var(--card)) 0%,
+      oklch(0.955 0.025 68) 100%
+    );
+    border: 1px solid oklch(var(--border));
+    border-radius: 1rem;
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .testimonial-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px oklch(var(--saffron) / 0.15), 0 4px 12px oklch(var(--burgundy) / 0.08);
+  }
+  .testimonial-card::before {
+    content: "\201C";
+    position: absolute;
+    top: -0.5rem;
+    left: 0.75rem;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 7rem;
+    font-weight: 900;
+    line-height: 1;
+    color: oklch(var(--saffron) / 0.10);
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+  }
+  .testimonial-card > * {
+    position: relative;
+    z-index: 1;
+  }
+  .testimonial-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    object-fit: cover;
+    border: 2.5px solid oklch(var(--saffron) / 0.50);
+    box-shadow: 0 0 0 3px oklch(var(--saffron) / 0.12), 0 2px 8px oklch(var(--burgundy) / 0.12);
+    flex-shrink: 0;
+  }
+
+  /* Section divider — thin saffron line */
+  .section-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, oklch(var(--saffron) / 0.18), transparent);
+    margin: 0;
   }
 
   /* State badge */
@@ -374,6 +434,11 @@
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes whatsapp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.45); }
+  50% { box-shadow: 0 0 0 8px rgba(37, 211, 102, 0); }
 }
 
 @keyframes shimmer {

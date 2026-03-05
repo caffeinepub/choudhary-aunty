@@ -9,6 +9,7 @@ import {
   getMakerImage,
   getProductImage,
 } from "@/constants/images";
+import { getMakerStoryByName } from "@/constants/makerStories";
 import { useActor } from "@/hooks/useActor";
 import {
   useGetAllMakers,
@@ -22,15 +23,16 @@ import {
   Gift,
   Heart,
   MessageCircle,
+  Play,
   Share2,
   ShoppingBag,
   Star,
   Truck,
   Users,
 } from "lucide-react";
-import { motion } from "motion/react";
-import { useEffect } from "react";
-import { SiFacebook, SiInstagram, SiWhatsapp } from "react-icons/si";
+import { motion, useInView } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { SiFacebook, SiInstagram, SiWhatsapp, SiX } from "react-icons/si";
 
 const container = {
   hidden: { opacity: 0 },
@@ -39,6 +41,68 @@ const container = {
 const item = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
+// ─── Animated Counter ───────────────────────────────────────────────────────
+function AnimatedCounter({
+  target,
+  suffix = "",
+  prefix = "",
+}: {
+  target: number;
+  suffix?: string;
+  prefix?: string;
+}) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (!isInView) return;
+    let start = 0;
+    const duration = 1500;
+    const increment = target / (duration / 16);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= target) {
+        setCount(target);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 16);
+    return () => clearInterval(timer);
+  }, [isInView, target]);
+
+  return (
+    <span ref={ref}>
+      {prefix}
+      {count}
+      {suffix}
+    </span>
+  );
+}
+
+// ─── Avatar helper ──────────────────────────────────────────────────────────
+function getAvatarBg(name: string): string {
+  const colors = [
+    "bg-saffron/20 text-saffron",
+    "bg-terracotta/20 text-terracotta",
+    "bg-burgundy/20 text-burgundy",
+    "bg-amber-200/60 text-amber-800",
+    "bg-rose-200/60 text-rose-700",
+  ];
+  const idx = name.charCodeAt(0) % colors.length;
+  return colors[idx];
+}
+
+// ─── Customer photo map ─────────────────────────────────────────────────────
+const CUSTOMER_PHOTOS: Record<string, string> = {
+  "Meena Sharma": "/assets/generated/customer-meena.dim_200x200.jpg",
+  "Rohit Kapoor": "/assets/generated/customer-rohit.dim_200x200.jpg",
+  "Priya Agarwal": "/assets/generated/customer-priya.dim_200x200.jpg",
+  "Kavita Mishra": "/assets/generated/customer-kavita.dim_200x200.jpg",
+  "Sunita Verma": "/assets/generated/customer-sunita.dim_200x200.jpg",
 };
 
 export default function HomePage() {
@@ -118,7 +182,7 @@ export default function HomePage() {
               <span className="text-saffron italic">For You.</span>
             </h1>
 
-            <p className="text-cream/85 text-lg sm:text-xl font-body mb-2 max-w-xl leading-relaxed">
+            <p className="text-cream/90 text-lg sm:text-xl font-body mb-2 max-w-xl leading-relaxed [text-shadow:0_1px_6px_rgba(0,0,0,0.4)]">
               Not last month. Not last year. This weekend — by a real woman, in
               a real kitchen, from a recipe that's older than any brand you've
               seen on a shelf.
@@ -141,7 +205,7 @@ export default function HomePage() {
                 Our Story
               </Link>
             </div>
-            <p className="text-cream/55 text-xs sm:text-sm font-body italic">
+            <p className="text-cream/85 text-xs sm:text-sm font-body italic [text-shadow:0_1px_6px_rgba(0,0,0,0.4)]">
               Order by Friday. Fresh in your hands by Sunday. Pan India
               delivery.
             </p>
@@ -164,11 +228,137 @@ export default function HomePage() {
                 <div className="font-display text-xl sm:text-2xl font-bold text-saffron">
                   {stat.value}
                 </div>
-                <div className="text-cream/60 text-xs font-body mt-0.5">
+                <div className="text-cream/85 text-xs font-body mt-0.5 [text-shadow:0_1px_4px_rgba(0,0,0,0.5)]">
                   {stat.label}
                 </div>
               </div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== IMPACT NUMBERS MATRIX ===== */}
+      <section className="py-16 sm:py-24 deep-section relative overflow-hidden">
+        {/* Decorative blobs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-saffron/8 blur-3xl" />
+          <div className="absolute -bottom-16 -right-16 w-72 h-72 rounded-full bg-turmeric/8 blur-3xl" />
+        </div>
+
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="text-center mb-12"
+          >
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="h-px w-8 bg-saffron/50" />
+              <span className="text-saffron text-xs tracking-[0.3em] uppercase font-body font-semibold">
+                The Impact
+              </span>
+              <div className="h-px w-8 bg-saffron/50" />
+            </div>
+            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-cream leading-tight mb-4">
+              Numbers That Tell a{" "}
+              <span className="text-saffron italic">Woman's Story</span>
+            </h2>
+            <p className="text-cream/80 font-body text-base sm:text-lg max-w-xl mx-auto">
+              Every number is a woman's dream — and a family's dignity.
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="grid grid-cols-2 sm:grid-cols-3 gap-5 sm:gap-6"
+          >
+            {[
+              {
+                icon: "👩",
+                value: 50,
+                suffix: "+",
+                label: "Women Empowered",
+                sub: "Building enterprise from their kitchen",
+              },
+              {
+                icon: "💰",
+                value: 15000,
+                prefix: "₹",
+                suffix: "+",
+                label: "Monthly Earnings",
+                sub: "Active sellers earning per month",
+              },
+              {
+                icon: "🌸",
+                value: 120,
+                suffix: "+",
+                label: "Young Women Supporting",
+                sub: "Joining & supporting our aunties",
+              },
+              {
+                icon: "📍",
+                value: 28,
+                suffix: "",
+                label: "States Being Covered",
+                sub: "Across India — North to South",
+              },
+              {
+                icon: "🍯",
+                value: 50,
+                suffix: "+",
+                label: "Authentic Recipes",
+                sub: "Traditional recipes listed & sold",
+              },
+              {
+                icon: "🏡",
+                value: 10000,
+                suffix: "+",
+                label: "Families Served",
+                sub: "Delivering authentic taste pan-India",
+              },
+            ].map((stat, idx) => (
+              <motion.div
+                key={stat.label}
+                variants={item}
+                className="bg-cream/5 border border-cream/10 rounded-2xl p-5 sm:p-6 text-center hover:bg-cream/8 transition-colors"
+                data-ocid={`impact.item.${idx + 1}`}
+              >
+                <div className="text-3xl sm:text-4xl mb-3">{stat.icon}</div>
+                <div className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-saffron leading-none mb-2">
+                  <AnimatedCounter
+                    target={stat.value}
+                    suffix={stat.suffix}
+                    prefix={stat.prefix ?? ""}
+                  />
+                </div>
+                <div className="text-cream font-display font-semibold text-sm mb-1">
+                  {stat.label}
+                </div>
+                <div className="text-cream/80 font-body text-xs leading-snug">
+                  {stat.sub}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="text-center mt-10"
+          >
+            <Link
+              to="/become-an-aunty"
+              data-ocid="impact.become_aunty_button"
+              className="inline-flex items-center gap-2 bg-saffron hover:bg-terracotta text-cream font-semibold px-7 py-3.5 rounded-full transition-colors font-body shadow-warm-lg"
+            >
+              Join Our Movement <ArrowRight className="w-4 h-4" />
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -314,34 +504,58 @@ export default function HomePage() {
               viewport={{ once: true }}
               className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"
             >
-              {makers.slice(0, 5).map((maker, idx) => (
-                <motion.div key={maker.id.toString()} variants={item}>
-                  <Link
-                    to="/maker/$id"
-                    params={{ id: maker.id.toString() }}
-                    className="group block rounded-2xl overflow-hidden border border-border card-warm bg-background shadow-xs"
-                    data-ocid={`makers.item.${idx + 1}`}
-                  >
-                    <div className="aspect-[4/5] overflow-hidden">
-                      <img
-                        src={getMakerImage(maker.name)}
-                        alt={maker.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
+              {makers.slice(0, 5).map((maker, idx) => {
+                const makerStory = getMakerStoryByName(maker.name);
+                return (
+                  <motion.div key={maker.id.toString()} variants={item}>
+                    <div
+                      className="group rounded-2xl overflow-hidden border border-border card-warm bg-background shadow-xs flex flex-col h-full"
+                      data-ocid={`makers.item.${idx + 1}`}
+                    >
+                      <Link
+                        to="/maker/$id"
+                        params={{ id: maker.id.toString() }}
+                        className="block"
+                      >
+                        <div className="aspect-[4/5] overflow-hidden">
+                          <img
+                            src={getMakerImage(maker.name)}
+                            alt={maker.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="p-3 pb-1">
+                          <div className="state-badge mb-2">{maker.state}</div>
+                          <h3 className="font-display font-semibold text-sm text-foreground leading-tight">
+                            {maker.name}
+                          </h3>
+                          <p className="text-muted-foreground text-xs font-body mt-1 line-clamp-2">
+                            {maker.bio}
+                          </p>
+                          {makerStory && (
+                            <p className="text-amber-700/80 text-[11px] font-serif italic mt-1.5 line-clamp-1">
+                              "{makerStory.tagline}"
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                      {makerStory && (
+                        <div className="px-3 pb-3 pt-1">
+                          <Link
+                            to="/maker/$id"
+                            params={{ id: maker.id.toString() }}
+                            className="inline-flex items-center gap-1 text-amber-700 hover:text-amber-900 text-[11px] font-body italic transition-colors"
+                            data-ocid={`home.maker.story_link.${idx + 1}`}
+                          >
+                            📖 Her Story →
+                          </Link>
+                        </div>
+                      )}
                     </div>
-                    <div className="p-3">
-                      <div className="state-badge mb-2">{maker.state}</div>
-                      <h3 className="font-display font-semibold text-sm text-foreground leading-tight">
-                        {maker.name}
-                      </h3>
-                      <p className="text-muted-foreground text-xs font-body mt-1 line-clamp-2">
-                        {maker.bio}
-                      </p>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </motion.div>
           )}
         </div>
@@ -427,10 +641,10 @@ export default function HomePage() {
                 <motion.div key={state.name} variants={item}>
                   <div className="w-full bg-muted/40 border border-dashed border-border rounded-2xl p-4 text-center opacity-70 cursor-not-allowed">
                     <div className="text-2xl mb-2">{state.emoji}</div>
-                    <h3 className="font-display font-semibold text-foreground/60 text-xs leading-tight mb-1">
+                    <h3 className="font-display font-semibold text-foreground/70 text-xs leading-tight mb-1">
                       {state.name}
                     </h3>
-                    <p className="text-muted-foreground text-[10px] font-body">
+                    <p className="text-muted-foreground/80 text-[10px] font-body">
                       Coming soon
                     </p>
                   </div>
@@ -626,13 +840,28 @@ export default function HomePage() {
                   message:
                     "Finally found something that tastes like home! The namakpara from Babita ji is crispy, light and perfectly spiced. Already placed my second order.",
                 },
+                {
+                  name: "Kavita Mishra",
+                  location: "Pune",
+                  rating: 5,
+                  message:
+                    "Ordered the Tilkut from Bihar for my father who grew up there. He cried when he tasted it — said it tasted exactly like his childhood. Thank you Anju ji.",
+                },
+                {
+                  name: "Sunita Verma",
+                  location: "Hyderabad",
+                  rating: 5,
+                  message:
+                    "The customer service is amazing — they kept me updated throughout the weekend batch process. And the namakpara? Gone in 2 days in my house!",
+                },
               ].map((t, testimonialIdx) => (
                 <motion.div key={t.name} variants={item}>
                   <div
-                    className="bg-card rounded-2xl p-6 border border-border card-warm shadow-xs h-full flex flex-col"
+                    className="testimonial-card"
                     data-ocid={`testimonials.item.${testimonialIdx + 1}`}
                   >
-                    <div className="flex items-center gap-1 mb-3">
+                    {/* Stars */}
+                    <div className="flex items-center gap-0.5 mb-3">
                       {Array.from(
                         { length: t.rating },
                         (_, i) => `star-${i}`,
@@ -643,21 +872,36 @@ export default function HomePage() {
                         />
                       ))}
                     </div>
-                    <p className="text-foreground/80 text-sm font-body leading-relaxed flex-1 italic">
-                      "{t.message}"
+                    {/* Quote */}
+                    <p className="text-foreground/85 text-sm font-body leading-relaxed flex-1 italic">
+                      {t.message}
                     </p>
-                    <div className="mt-4 flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-saffron/15 flex items-center justify-center">
-                        <span className="font-display font-bold text-saffron text-sm">
-                          {t.name[0]}
-                        </span>
-                      </div>
+                    {/* Customer */}
+                    <div className="mt-5 pt-4 border-t border-border/60 flex items-center gap-3">
+                      {CUSTOMER_PHOTOS[t.name] ? (
+                        <img
+                          src={CUSTOMER_PHOTOS[t.name]}
+                          alt={t.name}
+                          className="testimonial-avatar"
+                        />
+                      ) : (
+                        <div
+                          className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 testimonial-avatar ${getAvatarBg(t.name)}`}
+                        >
+                          <span className="font-display font-bold text-base">
+                            {t.name[0]}
+                          </span>
+                        </div>
+                      )}
                       <div>
                         <div className="font-semibold text-sm text-foreground font-body">
                           {t.name}
                         </div>
-                        <div className="text-xs text-muted-foreground font-body">
-                          {t.location}
+                        <div className="text-xs text-muted-foreground font-body flex items-center gap-1 flex-wrap">
+                          <span>📍 {t.location}</span>
+                          <span className="text-emerald-600 font-semibold">
+                            ✓ Verified Customer
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -676,10 +920,11 @@ export default function HomePage() {
               {testimonials.map((t, testimonialIdx) => (
                 <motion.div key={t.id.toString()} variants={item}>
                   <div
-                    className="bg-card rounded-2xl p-6 border border-border card-warm shadow-xs h-full flex flex-col"
+                    className="testimonial-card"
                     data-ocid={`testimonials.item.${testimonialIdx + 1}`}
                   >
-                    <div className="flex items-center gap-1 mb-3">
+                    {/* Stars */}
+                    <div className="flex items-center gap-0.5 mb-3">
                       {Array.from(
                         { length: Number(t.rating) },
                         (_, i) => `star-${i}`,
@@ -690,21 +935,36 @@ export default function HomePage() {
                         />
                       ))}
                     </div>
-                    <p className="text-foreground/80 text-sm font-body leading-relaxed flex-1 italic">
-                      "{t.message}"
+                    {/* Quote */}
+                    <p className="text-foreground/85 text-sm font-body leading-relaxed flex-1 italic">
+                      {t.message}
                     </p>
-                    <div className="mt-4 flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-saffron/15 flex items-center justify-center">
-                        <span className="font-display font-bold text-saffron text-sm">
-                          {t.customerName[0]}
-                        </span>
-                      </div>
+                    {/* Customer */}
+                    <div className="mt-5 pt-4 border-t border-border/60 flex items-center gap-3">
+                      {CUSTOMER_PHOTOS[t.customerName] ? (
+                        <img
+                          src={CUSTOMER_PHOTOS[t.customerName]}
+                          alt={t.customerName}
+                          className="testimonial-avatar"
+                        />
+                      ) : (
+                        <div
+                          className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 testimonial-avatar ${getAvatarBg(t.customerName)}`}
+                        >
+                          <span className="font-display font-bold text-base">
+                            {t.customerName[0]}
+                          </span>
+                        </div>
+                      )}
                       <div>
                         <div className="font-semibold text-sm text-foreground font-body">
                           {t.customerName}
                         </div>
-                        <div className="text-xs text-muted-foreground font-body">
-                          {t.location}
+                        <div className="text-xs text-muted-foreground font-body flex items-center gap-1 flex-wrap">
+                          <span>📍 {t.location}</span>
+                          <span className="text-emerald-600 font-semibold">
+                            ✓ Verified Customer
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -713,6 +973,124 @@ export default function HomePage() {
               ))}
             </motion.div>
           )}
+        </div>
+      </section>
+
+      {/* Section divider */}
+      <div className="section-divider" />
+
+      {/* ===== INSTAGRAM REELS SECTION ===== */}
+      <section className="py-16 sm:py-20 bg-card border-y border-border">
+        <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            {/* Instagram gradient eyebrow */}
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white text-xs px-4 py-1.5 rounded-full font-body font-semibold mb-4">
+              <SiInstagram className="w-3.5 h-3.5" />
+              @choudharyaunty
+            </div>
+            <h2 className="section-heading text-3xl sm:text-4xl mt-1.5">
+              Watch Our Kitchen Stories
+            </h2>
+            <p className="text-muted-foreground font-body mt-3 max-w-xl mx-auto">
+              📱 Watch our reels and stories — follow us on Instagram for live
+              kitchen moments
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8"
+          >
+            {[
+              {
+                caption: "Anju ji's aam ka achar — made fresh this weekend 🫙",
+                gradient: "from-amber-800 via-orange-900 to-stone-900",
+                emoji: "🫙",
+              },
+              {
+                caption: "5 kg mangoes, 3 hours of love. The real process 🌿",
+                gradient: "from-green-900 via-emerald-800 to-stone-900",
+                emoji: "🥭",
+              },
+              {
+                caption:
+                  "Babita Tai's namakpara gets crispy because she kneads 40 minutes by hand 👐",
+                gradient: "from-yellow-900 via-amber-800 to-stone-900",
+                emoji: "🤌",
+              },
+              {
+                caption:
+                  "Sarla Maasi's Diwali ladoo ritual — 40 years in the making ✨",
+                gradient: "from-rose-900 via-pink-800 to-stone-900",
+                emoji: "✨",
+              },
+              {
+                caption: "Pahadi flavours with Geeta Devi from Almora 🏔️",
+                gradient: "from-indigo-900 via-purple-800 to-stone-900",
+                emoji: "🏔️",
+              },
+            ].map((reel, idx) => (
+              <motion.a
+                key={reel.caption}
+                variants={item}
+                href="https://www.instagram.com/choudharyaunty"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-ocid={`instagram.item.${idx + 1}`}
+                whileHover={{ scale: 1.04 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="group relative aspect-[9/16] rounded-2xl overflow-hidden shadow-warm cursor-pointer"
+              >
+                {/* Background gradient */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-b ${reel.gradient}`}
+                />
+                {/* Noise texture overlay */}
+                <div className="absolute inset-0 opacity-[0.06] [background-image:url(data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.9%22%20numOctaves%3D%224%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url%28%23n%29%22%2F%3E%3C%2Fsvg%3E)]" />
+                {/* Emoji decoration */}
+                <div className="absolute top-3 left-3 text-2xl">
+                  {reel.emoji}
+                </div>
+                {/* Instagram icon top-right */}
+                <div className="absolute top-3 right-3">
+                  <SiInstagram className="w-4 h-4 text-white/60 group-hover:text-white/90 transition-colors" />
+                </div>
+                {/* Play button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center group-hover:bg-white/30 transition-all group-hover:scale-110">
+                    <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+                  </div>
+                </div>
+                {/* Caption at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                  <p className="text-white text-[10px] sm:text-xs font-body leading-tight line-clamp-3 [text-shadow:0_1px_3px_rgba(0,0,0,0.5)]">
+                    {reel.caption}
+                  </p>
+                </div>
+              </motion.a>
+            ))}
+          </motion.div>
+
+          <div className="text-center">
+            <a
+              href="https://www.instagram.com/choudharyaunty"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ocid="instagram.follow_button"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white font-semibold px-7 py-3.5 rounded-full transition-opacity hover:opacity-90 font-body shadow-warm-lg"
+            >
+              <SiInstagram className="w-5 h-5" />
+              Follow @choudharyaunty on Instagram
+            </a>
+          </div>
         </div>
       </section>
 
@@ -772,7 +1150,7 @@ export default function HomePage() {
                   className="bg-cream/5 rounded-xl p-4 border border-cream/10"
                 >
                   <div className="text-2xl mb-2">{v.icon}</div>
-                  <div className="text-cream/80 text-xs font-body font-semibold">
+                  <div className="text-cream/90 text-xs font-body font-semibold">
                     {v.label}
                   </div>
                 </div>
@@ -863,14 +1241,14 @@ export default function HomePage() {
                   <div className="text-4xl mb-3">{festival.emoji}</div>
                   <Badge
                     variant="outline"
-                    className="text-[10px] border-cream/30 text-cream/80 font-body mb-2"
+                    className="text-[10px] border-cream/40 text-cream font-body mb-2"
                   >
                     {festival.season}
                   </Badge>
                   <h3 className="font-display font-bold text-base mb-1">
                     {festival.name}
                   </h3>
-                  <p className="text-cream/70 text-xs font-body mb-4">
+                  <p className="text-cream/90 text-xs font-body mb-4 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
                     {festival.products}
                   </p>
                   <a
@@ -937,7 +1315,7 @@ export default function HomePage() {
                       <div className="font-display font-bold text-cream text-sm">
                         {b.title}
                       </div>
-                      <div className="text-cream/70 text-xs font-body mt-0.5">
+                      <div className="text-cream/85 text-xs font-body mt-0.5">
                         {b.desc}
                       </div>
                     </div>
@@ -1099,15 +1477,15 @@ export default function HomePage() {
               and a family gain financial dignity.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
               <a
                 href={`https://wa.me/?text=${shareText}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-ocid="home.whatsapp_share"
-                className="flex items-center gap-2 bg-[#25d366] hover:bg-[#1da851] text-white font-semibold px-6 py-3 rounded-full transition-colors shadow-warm font-body"
+                className="flex items-center gap-2 bg-[#25d366] hover:bg-[#1da851] text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:scale-105 shadow-warm font-body"
               >
-                <SiWhatsapp className="w-5 h-5" />
+                <SiWhatsapp className="w-4 h-4" />
                 Share on WhatsApp
               </a>
               <a
@@ -1115,9 +1493,9 @@ export default function HomePage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 data-ocid="home.instagram_share"
-                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold px-6 py-3 rounded-full transition-opacity hover:opacity-90 font-body"
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:scale-105 hover:opacity-90 font-body"
               >
-                <SiInstagram className="w-5 h-5" />
+                <SiInstagram className="w-4 h-4" />
                 Follow on Instagram
               </a>
               <a
@@ -1125,10 +1503,20 @@ export default function HomePage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 data-ocid="home.facebook_share"
-                className="flex items-center gap-2 bg-[#1877f2] hover:bg-[#1565d8] text-white font-semibold px-6 py-3 rounded-full transition-colors font-body"
+                className="flex items-center gap-2 bg-[#1877f2] hover:bg-[#1565d8] text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:scale-105 font-body"
               >
-                <SiFacebook className="w-5 h-5" />
+                <SiFacebook className="w-4 h-4" />
                 Share on Facebook
+              </a>
+              <a
+                href={`https://x.com/intent/tweet?text=${shareText}&url=${encodeURIComponent("https://www.choudharyaunty.com")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-ocid="home.twitter_share"
+                className="flex items-center gap-2 bg-zinc-900 hover:bg-black text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:scale-105 font-body"
+              >
+                <SiX className="w-4 h-4" />
+                Share on X
               </a>
             </div>
 

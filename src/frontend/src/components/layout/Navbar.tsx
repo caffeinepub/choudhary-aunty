@@ -15,6 +15,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { ChevronDown, Globe, Menu, MessageCircle, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { SiFacebook, SiInstagram, SiWhatsapp, SiX } from "react-icons/si";
 
 const NAV_LINK_KEYS = [
   { key: "nav.home", href: "/", ocid: "nav.home_link" },
@@ -78,22 +79,14 @@ export default function Navbar() {
         {/* Logo */}
         <Link
           to="/"
-          className="flex items-center gap-2.5 group"
+          className="flex items-center group"
           data-ocid="nav.home_link"
         >
           <img
             src={LOGO_IMAGE}
             alt="Choudhary Aunty"
-            className="w-10 h-10 object-contain rounded-full bg-white shadow-warm group-hover:scale-105 transition-transform"
+            className="h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-200 drop-shadow-sm"
           />
-          <div className="leading-tight">
-            <div className="font-display font-bold text-burgundy text-base leading-none">
-              Choudhary Aunty
-            </div>
-            <div className="text-muted-foreground text-[10px] tracking-wider font-body">
-              Dream has no age
-            </div>
-          </div>
         </Link>
 
         {/* Desktop Nav */}
@@ -295,6 +288,55 @@ export default function Navbar() {
                       {name}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Social links in mobile menu */}
+              <div className="border-t border-border mt-2 pt-3 pb-1 px-4">
+                <p className="text-xs text-muted-foreground font-body uppercase tracking-wider mb-2.5">
+                  Follow Us
+                </p>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://instagram.com/choudharyaunty"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram"
+                    className="w-9 h-9 rounded-full bg-saffron/8 hover:bg-saffron/15 border border-saffron/20 flex items-center justify-center transition-colors text-foreground/70 hover:text-saffron"
+                    data-ocid="nav.instagram_link"
+                  >
+                    <SiInstagram className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://x.com/choudharyaunty"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="X (Twitter)"
+                    className="w-9 h-9 rounded-full bg-saffron/8 hover:bg-saffron/15 border border-saffron/20 flex items-center justify-center transition-colors text-foreground/70 hover:text-saffron"
+                    data-ocid="nav.twitter_link"
+                  >
+                    <SiX className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://facebook.com/choudharyaunty"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Facebook"
+                    className="w-9 h-9 rounded-full bg-saffron/8 hover:bg-saffron/15 border border-saffron/20 flex items-center justify-center transition-colors text-foreground/70 hover:text-saffron"
+                    data-ocid="nav.facebook_link"
+                  >
+                    <SiFacebook className="w-4 h-4" />
+                  </a>
+                  <a
+                    href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="WhatsApp"
+                    className="w-9 h-9 rounded-full bg-[#25d366]/10 hover:bg-[#25d366]/20 border border-[#25d366]/25 flex items-center justify-center transition-colors text-[#1a9e4e] hover:text-[#168b44]"
+                    data-ocid="nav.whatsapp_social_link"
+                  >
+                    <SiWhatsapp className="w-4 h-4" />
+                  </a>
                 </div>
               </div>
             </div>

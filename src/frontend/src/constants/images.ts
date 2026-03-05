@@ -92,7 +92,8 @@ export const DEFAULT_PRODUCT_IMAGE =
   "/assets/generated/product-achar.dim_600x500.jpg";
 export const DEFAULT_MAKER_IMAGE =
   "/assets/generated/maker-anju.dim_400x500.jpg";
-export const LOGO_IMAGE = "/assets/generated/logo-transparent.dim_400x400.png";
+export const LOGO_IMAGE =
+  "/assets/uploads/ChatGPT-Image-Mar-5-2026-01_03_13-PM-1.png";
 export const HERO_IMAGE = "/assets/generated/hero-banner.dim_1400x700.jpg";
 export const INDIA_MAP_IMAGE =
   "/assets/generated/india-map-states.dim_600x700.png";
