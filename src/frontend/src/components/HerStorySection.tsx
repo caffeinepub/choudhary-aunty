@@ -19,15 +19,15 @@ function LifeMarker({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-full px-4 py-2.5 shrink-0">
-      <div className="w-7 h-7 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
-        <Icon className="w-3.5 h-3.5 text-amber-700" />
+    <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-3 py-2 shrink-0">
+      <div className="w-6 h-6 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
+        <Icon className="w-3 h-3 text-amber-700" />
       </div>
       <div>
-        <div className="text-[10px] font-body font-semibold uppercase tracking-wider text-amber-600/80">
+        <div className="text-[9px] font-body font-semibold uppercase tracking-wider text-amber-600/80">
           {label}
         </div>
-        <div className="font-serif italic text-amber-900 text-sm leading-tight">
+        <div className="font-serif italic text-amber-900 text-xs leading-tight">
           {value}
         </div>
       </div>
@@ -119,7 +119,7 @@ export default function HerStorySection({
         className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"
       />
 
-      <div className="container mx-auto px-4 sm:px-6 max-w-4xl py-12 sm:py-16">
+      <div className="container mx-auto px-4 sm:px-6 max-w-4xl py-8 sm:py-16">
         {/* ─── A — Section Header ─── */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -157,7 +157,7 @@ export default function HerStorySection({
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.55, delay: 0.15 }}
-          className="flex flex-wrap gap-3 justify-center mb-10"
+          className="flex flex-wrap gap-2 justify-center mb-8 sm:mb-10"
         >
           <LifeMarker icon={Calendar} label="Born" value={story.dob} />
           <LifeMarker icon={MapPin} label="From" value={story.birthPlace} />

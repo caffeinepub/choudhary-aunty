@@ -173,7 +173,7 @@ export default function ProductDetailPage() {
 
   return (
     <main className="min-h-screen pt-16 pb-24 sm:pb-12">
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl py-8">
+      <div className="container mx-auto px-4 sm:px-6 max-w-6xl py-4 sm:py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm font-body text-muted-foreground mb-6">
           <Link to="/" className="hover:text-saffron transition-colors">
@@ -202,7 +202,7 @@ export default function ProductDetailPage() {
             className="relative"
           >
             {/* Main gallery image */}
-            <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-card border border-border shadow-warm relative">
+            <div className="aspect-[4/3] sm:aspect-[4/3] rounded-2xl overflow-hidden bg-card border border-border shadow-warm relative">
               <motion.img
                 key={activeTab}
                 initial={{ opacity: 0, scale: 1.03 }}
@@ -237,8 +237,8 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Thumbnail nav */}
-            <div className="flex gap-2 mt-3">
+            {/* Thumbnail nav — scrollable on mobile */}
+            <div className="flex gap-2 mt-3 overflow-x-auto scrollbar-hide pb-1">
               {GALLERY_TABS.map((tab) => (
                 <button
                   key={tab.id}
@@ -246,7 +246,7 @@ export default function ProductDetailPage() {
                   onClick={() => setActiveTab(tab.id)}
                   data-ocid="product.gallery.tab"
                   aria-label={tab.label}
-                  className={`flex-1 aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+                  className={`shrink-0 w-14 h-14 sm:flex-1 sm:w-auto sm:aspect-square rounded-xl overflow-hidden border-2 transition-all ${
                     activeTab === tab.id
                       ? "border-saffron shadow-warm"
                       : "border-border opacity-60 hover:opacity-100 hover:border-saffron/40"
@@ -262,14 +262,14 @@ export default function ProductDetailPage() {
               ))}
             </div>
 
-            {/* Gallery tab labels */}
-            <div className="flex gap-2 mt-2">
+            {/* Gallery tab labels — scrollable on mobile */}
+            <div className="flex gap-2 mt-2 overflow-x-auto scrollbar-hide pb-0.5">
               {GALLERY_TABS.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 text-center text-[10px] font-body font-semibold leading-tight transition-colors py-1 ${
+                  className={`shrink-0 w-14 sm:flex-1 text-center text-[10px] font-body font-semibold leading-tight transition-colors py-1 ${
                     activeTab === tab.id
                       ? "text-saffron"
                       : "text-muted-foreground hover:text-foreground"
@@ -669,7 +669,7 @@ export default function ProductDetailPage() {
                 View All
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
               {relatedProducts.map((rp) => {
                 const rpSavings =
                   rp.mrp > rp.sellingPrice

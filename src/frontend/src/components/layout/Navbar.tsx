@@ -226,7 +226,7 @@ export default function Navbar() {
                   to={link.href}
                   data-ocid={link.ocid}
                   className={cn(
-                    "px-4 py-3 rounded-md text-sm font-medium font-body transition-colors",
+                    "px-4 py-2.5 rounded-md text-sm font-medium font-body transition-colors",
                     "hover:text-saffron hover:bg-saffron/5",
                     location.pathname === link.href
                       ? "text-saffron font-semibold bg-saffron/5"
@@ -244,7 +244,7 @@ export default function Navbar() {
                     to={link.href}
                     data-ocid={link.ocid}
                     className={cn(
-                      "block px-4 py-2.5 rounded-md text-sm font-medium font-body transition-colors",
+                      "block px-4 py-2 rounded-md text-sm font-medium font-body transition-colors",
                       "hover:text-saffron hover:bg-saffron/5",
                       location.pathname === link.href
                         ? "text-saffron font-semibold bg-saffron/5"
@@ -260,82 +260,80 @@ export default function Navbar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 data-ocid="nav.whatsapp_button"
-                className="mt-2 flex items-center justify-center gap-2 whatsapp-btn px-4 py-3 text-sm font-semibold"
+                className="mt-2 flex items-center justify-center gap-2 whatsapp-btn px-4 py-2.5 text-sm font-semibold"
               >
                 <MessageCircle className="w-4 h-4" />
                 {t("cta.orderWhatsapp")}
               </a>
-              {/* Language selector in mobile */}
-              <div className="border-t border-border mt-2 pt-2">
-                <p className="px-4 py-1 text-xs text-muted-foreground font-body uppercase tracking-wider">
-                  Language / भाषा
-                </p>
-                <div className="flex flex-wrap gap-1.5 px-4 py-2">
-                  {(
-                    Object.entries(LANGUAGE_NAMES) as [LanguageCode, string][]
-                  ).map(([code, name]) => (
-                    <button
-                      key={code}
-                      type="button"
-                      onClick={() => setLanguage(code)}
-                      className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-body border transition-colors",
-                        language === code
-                          ? "bg-saffron text-cream border-saffron"
-                          : "border-border text-foreground/60 hover:border-saffron/40",
-                      )}
-                    >
-                      {name}
-                    </button>
-                  ))}
+              {/* Language selector in mobile — compact select dropdown */}
+              <div className="border-t border-border mt-2 pt-2 px-4 pb-1">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  <select
+                    value={language}
+                    onChange={(e) =>
+                      setLanguage(e.target.value as LanguageCode)
+                    }
+                    data-ocid="nav.language_select"
+                    className="flex-1 text-xs font-body bg-background border border-border rounded-md px-2 py-1.5 text-foreground/70 focus:outline-none focus:border-saffron/50"
+                    aria-label="Select language"
+                  >
+                    {(
+                      Object.entries(LANGUAGE_NAMES) as [LanguageCode, string][]
+                    ).map(([code, name]) => (
+                      <option key={code} value={code}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
               {/* Social links in mobile menu */}
-              <div className="border-t border-border mt-2 pt-3 pb-1 px-4">
-                <p className="text-xs text-muted-foreground font-body uppercase tracking-wider mb-2.5">
+              <div className="border-t border-border mt-2 pt-2.5 pb-1 px-4">
+                <p className="text-xs text-muted-foreground font-body uppercase tracking-wider mb-2">
                   Follow Us
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <a
                     href="https://instagram.com/choudharyaunty"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Instagram"
-                    className="w-9 h-9 rounded-full bg-saffron/8 hover:bg-saffron/15 border border-saffron/20 flex items-center justify-center transition-colors text-foreground/70 hover:text-saffron"
+                    className="w-8 h-8 rounded-full bg-saffron/8 hover:bg-saffron/15 border border-saffron/20 flex items-center justify-center transition-colors text-foreground/70 hover:text-saffron"
                     data-ocid="nav.instagram_link"
                   >
-                    <SiInstagram className="w-4 h-4" />
+                    <SiInstagram className="w-3.5 h-3.5" />
                   </a>
                   <a
                     href="https://x.com/choudharyaunty"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="X (Twitter)"
-                    className="w-9 h-9 rounded-full bg-saffron/8 hover:bg-saffron/15 border border-saffron/20 flex items-center justify-center transition-colors text-foreground/70 hover:text-saffron"
+                    className="w-8 h-8 rounded-full bg-saffron/8 hover:bg-saffron/15 border border-saffron/20 flex items-center justify-center transition-colors text-foreground/70 hover:text-saffron"
                     data-ocid="nav.twitter_link"
                   >
-                    <SiX className="w-4 h-4" />
+                    <SiX className="w-3.5 h-3.5" />
                   </a>
                   <a
                     href="https://facebook.com/choudharyaunty"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Facebook"
-                    className="w-9 h-9 rounded-full bg-saffron/8 hover:bg-saffron/15 border border-saffron/20 flex items-center justify-center transition-colors text-foreground/70 hover:text-saffron"
+                    className="w-8 h-8 rounded-full bg-saffron/8 hover:bg-saffron/15 border border-saffron/20 flex items-center justify-center transition-colors text-foreground/70 hover:text-saffron"
                     data-ocid="nav.facebook_link"
                   >
-                    <SiFacebook className="w-4 h-4" />
+                    <SiFacebook className="w-3.5 h-3.5" />
                   </a>
                   <a
                     href={`https://wa.me/${WHATSAPP_NUMBER}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="WhatsApp"
-                    className="w-9 h-9 rounded-full bg-[#25d366]/10 hover:bg-[#25d366]/20 border border-[#25d366]/25 flex items-center justify-center transition-colors text-[#1a9e4e] hover:text-[#168b44]"
+                    className="w-8 h-8 rounded-full bg-[#25d366]/10 hover:bg-[#25d366]/20 border border-[#25d366]/25 flex items-center justify-center transition-colors text-[#1a9e4e] hover:text-[#168b44]"
                     data-ocid="nav.whatsapp_social_link"
                   >
-                    <SiWhatsapp className="w-4 h-4" />
+                    <SiWhatsapp className="w-3.5 h-3.5" />
                   </a>
                 </div>
               </div>

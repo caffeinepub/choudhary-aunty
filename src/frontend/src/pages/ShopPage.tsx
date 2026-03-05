@@ -173,7 +173,7 @@ export default function ShopPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.5 }}
-            className="relative w-full h-[220px] sm:h-[280px] overflow-hidden"
+            className="relative w-full h-[140px] sm:h-[260px] overflow-hidden"
           >
             <img
               src={stateBanner.image}
@@ -256,14 +256,17 @@ export default function ShopPage() {
           </div>
 
           {/* State Tabs — Live only */}
-          <div className="flex flex-wrap gap-2 mb-3" role="tablist">
+          <div
+            className="flex gap-2 mb-3 overflow-x-auto scrollbar-hide pb-1"
+            role="tablist"
+          >
             <button
               type="button"
               role="tab"
               aria-selected={!activeState}
               onClick={() => handleStateFilter("")}
               data-ocid="shop.state_tab"
-              className={`px-4 py-2 rounded-full text-sm font-semibold font-body transition-all border ${
+              className={`px-4 py-2 rounded-full text-sm font-semibold font-body transition-all border whitespace-nowrap shrink-0 ${
                 !activeState
                   ? "bg-saffron text-cream border-saffron shadow-warm"
                   : "bg-background text-foreground/70 border-border hover:border-saffron/40 hover:text-saffron"
@@ -279,7 +282,7 @@ export default function ShopPage() {
                 aria-selected={activeState === state.name}
                 onClick={() => handleStateFilter(state.name)}
                 data-ocid="shop.state_tab"
-                className={`px-4 py-2 rounded-full text-sm font-semibold font-body transition-all border flex items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-full text-sm font-semibold font-body transition-all border flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   activeState === state.name
                     ? "bg-saffron text-cream border-saffron shadow-warm"
                     : "bg-background text-foreground/70 border-border hover:border-saffron/40 hover:text-saffron"
@@ -291,11 +294,11 @@ export default function ShopPage() {
             ))}
           </div>
           {/* Coming soon states */}
-          <div className="flex flex-wrap gap-1.5 mb-4">
+          <div className="flex gap-1.5 mb-4 overflow-x-auto scrollbar-hide pb-1">
             {STATES.filter((s) => !s.live).map((state) => (
               <span
                 key={state.name}
-                className="px-3 py-1 rounded-full text-xs font-body border border-dashed border-border text-muted-foreground flex items-center gap-1 opacity-60 cursor-not-allowed"
+                className="px-3 py-1 rounded-full text-xs font-body border border-dashed border-border text-muted-foreground flex items-center gap-1 opacity-60 cursor-not-allowed whitespace-nowrap shrink-0"
                 title="Coming soon"
               >
                 <span>{state.emoji}</span>
@@ -309,11 +312,11 @@ export default function ShopPage() {
 
           {/* Season Filter */}
           <div
-            className="flex flex-wrap gap-2 mb-6"
+            className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-1"
             role="tablist"
             aria-label="Filter by season"
           >
-            <span className="flex items-center text-xs font-body text-muted-foreground font-semibold uppercase tracking-wider mr-1 self-center">
+            <span className="flex items-center text-xs font-body text-muted-foreground font-semibold uppercase tracking-wider mr-1 self-center whitespace-nowrap shrink-0">
               Season:
             </span>
             {SEASON_OPTIONS.map((opt) => (
@@ -324,7 +327,7 @@ export default function ShopPage() {
                 aria-selected={selectedSeason === opt.value}
                 onClick={() => setSelectedSeason(opt.value)}
                 data-ocid="shop.season_tab"
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-body transition-all border ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-body transition-all border whitespace-nowrap shrink-0 ${
                   selectedSeason === opt.value
                     ? opt.value === "all"
                       ? "bg-foreground text-background border-foreground"
@@ -339,7 +342,7 @@ export default function ShopPage() {
 
           {/* Products Grid */}
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
               {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map(
                 (key) => (
                   <div
@@ -393,7 +396,7 @@ export default function ShopPage() {
               variants={container}
               initial="hidden"
               animate="show"
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+              className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5"
             >
               {products.map((product, idx) => {
                 const savings =

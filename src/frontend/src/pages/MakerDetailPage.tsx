@@ -91,14 +91,14 @@ export default function MakerDetailPage() {
         </Link>
 
         {/* Profile */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-14">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 mb-8 sm:mb-14">
           {/* Photo */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-warm-lg border border-border">
+            <div className="aspect-[4/3] sm:aspect-[4/5] rounded-2xl overflow-hidden shadow-warm-lg border border-border">
               <img
                 src={getMakerImage(maker.name)}
                 alt={maker.name}
@@ -172,7 +172,7 @@ export default function MakerDetailPage() {
               <div className="h-px flex-1 bg-border" />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
               {products.map((product, idx) => {
                 const savings =
                   product.mrp > product.sellingPrice

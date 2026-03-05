@@ -150,7 +150,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen">
       {/* ===== HERO ===== */}
-      <section className="relative h-[90vh] min-h-[560px] max-h-[780px] flex items-end overflow-hidden">
+      <section className="relative h-[70vh] min-h-[480px] max-h-[680px] flex items-end overflow-hidden">
         <img
           src={HERO_IMAGE}
           alt="Traditional Indian homemade food"
@@ -216,7 +216,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.6 }}
-            className="mt-10 flex items-center gap-6 sm:gap-10"
+            className="mt-6 flex items-center gap-4 sm:gap-10"
           >
             {[
               { label: "Homemakers", value: "5+" },
@@ -238,7 +238,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== IMPACT NUMBERS MATRIX ===== */}
-      <section className="py-16 sm:py-24 deep-section relative overflow-hidden">
+      <section className="py-10 sm:py-24 deep-section relative overflow-hidden">
         {/* Decorative blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-saffron/8 blur-3xl" />
@@ -251,7 +251,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
-            className="text-center mb-12"
+            className="text-center mb-8 sm:mb-12"
           >
             <div className="flex items-center justify-center gap-2 mb-4">
               <div className="h-px w-8 bg-saffron/50" />
@@ -274,7 +274,7 @@ export default function HomePage() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
-            className="grid grid-cols-2 sm:grid-cols-3 gap-5 sm:gap-6"
+            className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6"
           >
             {[
               {
@@ -324,11 +324,13 @@ export default function HomePage() {
               <motion.div
                 key={stat.label}
                 variants={item}
-                className="bg-cream/5 border border-cream/10 rounded-2xl p-5 sm:p-6 text-center hover:bg-cream/8 transition-colors"
+                className="bg-cream/5 border border-cream/10 rounded-2xl p-3 sm:p-6 text-center hover:bg-cream/8 transition-colors"
                 data-ocid={`impact.item.${idx + 1}`}
               >
-                <div className="text-3xl sm:text-4xl mb-3">{stat.icon}</div>
-                <div className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-saffron leading-none mb-2">
+                <div className="text-2xl sm:text-4xl mb-2 sm:mb-3">
+                  {stat.icon}
+                </div>
+                <div className="font-display text-xl sm:text-3xl md:text-4xl font-bold text-saffron leading-none mb-1 sm:mb-2">
                   <AnimatedCounter
                     target={stat.value}
                     suffix={stat.suffix}
@@ -364,14 +366,14 @@ export default function HomePage() {
       </section>
 
       {/* ===== HOW IT WORKS ===== */}
-      <section className="py-16 sm:py-20 mesh-bg">
+      <section className="py-8 sm:py-20 mesh-bg">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12"
+            className="text-center mb-8 sm:mb-12"
           >
             <span className="text-saffron text-xs tracking-[0.3em] uppercase font-body font-semibold">
               The Process
@@ -458,14 +460,14 @@ export default function HomePage() {
       </section>
 
       {/* ===== FEATURED MAKERS ===== */}
-      <section className="py-16 sm:py-20 bg-card border-y border-border">
+      <section className="py-8 sm:py-20 bg-card border-y border-border">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10"
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 sm:mb-10"
           >
             <div>
               <span className="text-saffron text-xs tracking-[0.3em] uppercase font-body font-semibold">
@@ -562,7 +564,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== SHOP BY STATE ===== */}
-      <section className="py-16 sm:py-20 mesh-bg">
+      <section className="py-8 sm:py-20 mesh-bg">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -605,7 +607,7 @@ export default function HomePage() {
                         navigate({ to: "/shop", search: { state: state.name } })
                       }
                       data-ocid="shop.state_tab"
-                      className="group w-full bg-card hover:bg-saffron/5 border border-border hover:border-saffron/40 rounded-2xl p-5 text-left transition-all card-warm shadow-xs"
+                      className="group w-full bg-card hover:bg-saffron/5 border border-border hover:border-saffron/40 rounded-2xl p-3 sm:p-5 text-left transition-all card-warm shadow-xs"
                       aria-label={`Shop ${state.name} products`}
                     >
                       <div className="text-3xl mb-3">{state.emoji}</div>
@@ -656,13 +658,13 @@ export default function HomePage() {
       </section>
 
       {/* ===== SAMPLE PRODUCTS ===== */}
-      <section className="py-16 sm:py-20 bg-card border-y border-border">
+      <section className="py-8 sm:py-20 bg-card border-y border-border">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="flex items-center justify-between mb-10"
+            className="flex items-center justify-between mb-6 sm:mb-10"
           >
             <div>
               <span className="text-saffron text-xs tracking-[0.3em] uppercase font-body font-semibold">
@@ -687,7 +689,7 @@ export default function HomePage() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
           >
             {[
               {
@@ -741,7 +743,7 @@ export default function HomePage() {
                         <span className="savings-badge">{savings}% OFF</span>
                       </div>
                     </div>
-                    <div className="p-5">
+                    <div className="p-3 sm:p-5">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="state-badge">{product.state}</span>
                         <Badge
@@ -793,7 +795,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== TESTIMONIALS ===== */}
-      <section className="py-16 sm:py-20 mesh-bg">
+      <section className="py-8 sm:py-20 mesh-bg">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -976,11 +978,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Section divider */}
-      <div className="section-divider" />
-
       {/* ===== INSTAGRAM REELS SECTION ===== */}
-      <section className="py-16 sm:py-20 bg-card border-y border-border">
+      <section className="py-8 sm:py-20 bg-card border-y border-border">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1047,7 +1046,7 @@ export default function HomePage() {
                 data-ocid={`instagram.item.${idx + 1}`}
                 whileHover={{ scale: 1.04 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="group relative aspect-[9/16] rounded-2xl overflow-hidden shadow-warm cursor-pointer"
+                className="group relative aspect-[3/4] sm:aspect-[9/16] rounded-2xl overflow-hidden shadow-warm cursor-pointer"
               >
                 {/* Background gradient */}
                 <div
@@ -1095,7 +1094,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== WHY SUPPORT US ===== */}
-      <section className="py-16 sm:py-24 deep-section relative overflow-hidden">
+      <section className="py-10 sm:py-24 deep-section relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-0 left-0 w-64 h-64 rounded-full bg-saffron blur-3xl" />
@@ -1161,7 +1160,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== SEASONAL SPECIALS ===== */}
-      <section className="py-16 sm:py-20 mesh-bg">
+      <section className="py-8 sm:py-20 mesh-bg">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1270,7 +1269,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== GIFT HAMPERS TEASER ===== */}
-      <section className="py-16 sm:py-24 deep-section relative overflow-hidden">
+      <section className="py-8 sm:py-20 deep-section relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-saffron blur-3xl" />
         </div>
@@ -1380,13 +1379,13 @@ export default function HomePage() {
       </section>
 
       {/* ===== BLOG PREVIEW ===== */}
-      <section className="py-16 sm:py-20 bg-card border-t border-border">
+      <section className="py-8 sm:py-20 bg-card border-t border-border">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="flex items-center justify-between mb-10"
+            className="flex items-center justify-between mb-6 sm:mb-10"
           >
             <div>
               <span className="text-saffron text-xs tracking-[0.3em] uppercase font-body font-semibold">
@@ -1410,7 +1409,7 @@ export default function HomePage() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6"
           >
             {BLOG_POSTS.slice(0, 3).map((post, idx) => (
               <motion.div key={post.slug} variants={item}>
@@ -1460,7 +1459,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== SPREAD THE LOVE / HELP US GROW ===== */}
-      <section className="py-16 sm:py-20 mesh-bg border-t border-border">
+      <section className="py-8 sm:py-20 mesh-bg border-t border-border">
         <div className="container mx-auto px-4 sm:px-6 max-w-3xl text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1477,46 +1476,46 @@ export default function HomePage() {
               and a family gain financial dignity.
             </p>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-3 mb-8 sm:mb-10">
               <a
                 href={`https://wa.me/?text=${shareText}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-ocid="home.whatsapp_share"
-                className="flex items-center gap-2 bg-[#25d366] hover:bg-[#1da851] text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:scale-105 shadow-warm font-body"
+                className="flex items-center justify-center gap-2 bg-[#25d366] hover:bg-[#1da851] text-white font-semibold px-4 py-2.5 sm:px-6 sm:py-3 rounded-full transition-all duration-200 hover:scale-105 shadow-warm font-body text-sm"
               >
-                <SiWhatsapp className="w-4 h-4" />
-                Share on WhatsApp
+                <SiWhatsapp className="w-4 h-4 shrink-0" />
+                <span className="truncate">Share on WhatsApp</span>
               </a>
               <a
                 href="https://www.instagram.com/choudharyaunty"
                 target="_blank"
                 rel="noopener noreferrer"
                 data-ocid="home.instagram_share"
-                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:scale-105 hover:opacity-90 font-body"
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold px-4 py-2.5 sm:px-6 sm:py-3 rounded-full transition-all duration-200 hover:scale-105 hover:opacity-90 font-body text-sm"
               >
-                <SiInstagram className="w-4 h-4" />
-                Follow on Instagram
+                <SiInstagram className="w-4 h-4 shrink-0" />
+                <span className="truncate">Follow on Instagram</span>
               </a>
               <a
                 href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent("https://www.choudharyaunty.com")}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-ocid="home.facebook_share"
-                className="flex items-center gap-2 bg-[#1877f2] hover:bg-[#1565d8] text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:scale-105 font-body"
+                className="flex items-center justify-center gap-2 bg-[#1877f2] hover:bg-[#1565d8] text-white font-semibold px-4 py-2.5 sm:px-6 sm:py-3 rounded-full transition-all duration-200 hover:scale-105 font-body text-sm"
               >
-                <SiFacebook className="w-4 h-4" />
-                Share on Facebook
+                <SiFacebook className="w-4 h-4 shrink-0" />
+                <span className="truncate">Share on Facebook</span>
               </a>
               <a
                 href={`https://x.com/intent/tweet?text=${shareText}&url=${encodeURIComponent("https://www.choudharyaunty.com")}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-ocid="home.twitter_share"
-                className="flex items-center gap-2 bg-zinc-900 hover:bg-black text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 hover:scale-105 font-body"
+                className="flex items-center justify-center gap-2 bg-zinc-900 hover:bg-black text-white font-semibold px-4 py-2.5 sm:px-6 sm:py-3 rounded-full transition-all duration-200 hover:scale-105 font-body text-sm"
               >
-                <SiX className="w-4 h-4" />
-                Share on X
+                <SiX className="w-4 h-4 shrink-0" />
+                <span className="truncate">Share on X</span>
               </a>
             </div>
 

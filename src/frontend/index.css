@@ -489,3 +489,27 @@
 ::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--saffron));
 }
+
+/* ============================================
+   SCROLLBAR HIDE UTILITY
+   ============================================ */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   MOBILE TOUCH OPTIMIZATIONS
+   ============================================ */
+@media (max-width: 640px) {
+  .card-warm:hover {
+    transform: none; /* disable lift animation on touch */
+  }
+  .testimonial-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
