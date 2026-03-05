@@ -1,0 +1,426 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   CHOUDHARY AUNTY — BRAND DESIGN TOKENS
+   Premium Traditional Indian Heritage
+   ============================================ */
+
+/* ============================================
+   SELF-HOSTED FONTS
+   Served from /assets/fonts/ at deploy time
+   ============================================ */
+
+/* Playfair Display — Display / Headings */
+@font-face {
+  font-family: "Playfair Display";
+  src: url("/assets/fonts/PlayfairDisplay-Variable.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Playfair Display";
+  src: url("/assets/fonts/PlayfairDisplay-Italic-Variable.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Figtree — Body / UI */
+@font-face {
+  font-family: "Figtree";
+  src: url("/assets/fonts/Figtree-Variable.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fraunces — Accent / Pull quotes */
+@font-face {
+  font-family: "Fraunces";
+  src: url("/assets/fonts/Fraunces-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fraunces";
+  src: url("/assets/fonts/Fraunces-Italic-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    /* ---- Semantic tokens (OKLCH L C H) ---- */
+    --radius: 0.625rem;
+
+    /* Warm cream/ivory background — deeper, richer */
+    --background: 0.978 0.015 72;
+    --foreground: 0.16 0.05 42;
+
+    /* Card: warm parchment */
+    --card: 0.965 0.020 70;
+    --card-foreground: 0.16 0.05 42;
+
+    --popover: 0.978 0.015 72;
+    --popover-foreground: 0.16 0.05 42;
+
+    /* Primary: Vibrant Saffron — punchy and warm */
+    --primary: 0.65 0.22 46;
+    --primary-foreground: 0.99 0.005 72;
+
+    /* Secondary: Rich Deep Maroon */
+    --secondary: 0.25 0.10 22;
+    --secondary-foreground: 0.97 0.012 70;
+
+    /* Muted: Warm wheat parchment */
+    --muted: 0.935 0.022 68;
+    --muted-foreground: 0.48 0.05 52;
+
+    /* Accent: Golden Turmeric */
+    --accent: 0.84 0.15 82;
+    --accent-foreground: 0.16 0.05 42;
+
+    --destructive: 0.52 0.22 22;
+    --destructive-foreground: 0.97 0.01 72;
+
+    --border: 0.89 0.030 65;
+    --input: 0.89 0.030 65;
+    --ring: 0.65 0.22 46;
+
+    /* Chart colors — spice palette */
+    --chart-1: 0.65 0.22 46;
+    --chart-2: 0.52 0.18 28;
+    --chart-3: 0.84 0.15 82;
+    --chart-4: 0.36 0.10 25;
+    --chart-5: 0.74 0.16 58;
+
+    --sidebar: 0.96 0.025 68;
+    --sidebar-foreground: 0.16 0.05 42;
+    --sidebar-primary: 0.65 0.22 46;
+    --sidebar-primary-foreground: 0.99 0.005 72;
+    --sidebar-accent: 0.935 0.022 68;
+    --sidebar-accent-foreground: 0.16 0.05 42;
+    --sidebar-border: 0.89 0.030 65;
+    --sidebar-ring: 0.65 0.22 46;
+
+    /* Brand-specific custom tokens */
+    --saffron: 0.65 0.22 46;
+    --saffron-light: 0.78 0.16 52;
+    --turmeric: 0.84 0.15 82;
+    --terracotta: 0.52 0.18 28;
+    --burgundy: 0.25 0.10 22;
+    --cream: 0.978 0.015 72;
+    --warmBrown: 0.22 0.06 42;
+    --gold: 0.80 0.12 75;
+
+    /* Typography scale rhythm */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    --font-size-5xl: 3rem;
+    --font-size-6xl: 3.75rem;
+    --font-size-7xl: 4.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.65;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Playfair Display", "Georgia", serif;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+@layer components {
+  .font-display {
+    font-family: "Playfair Display", "Georgia", serif;
+  }
+
+  .font-accent {
+    font-family: "Fraunces", "Playfair Display", "Georgia", serif;
+  }
+
+  .font-body {
+    font-family: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  /* Grain texture overlay */
+  .grain-overlay {
+    position: relative;
+  }
+  .grain-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    border-radius: inherit;
+  }
+
+  /* Spice pattern decorative border */
+  .spice-border-top {
+    border-top: 3px solid oklch(var(--saffron));
+    position: relative;
+  }
+  .spice-border-top::before {
+    content: "✦ ✦ ✦";
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: oklch(var(--cream));
+    padding: 0 1rem;
+    color: oklch(var(--saffron));
+    font-size: 0.6rem;
+    letter-spacing: 0.5rem;
+  }
+
+  /* Decorative divider */
+  .ornament-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: oklch(var(--saffron));
+  }
+  .ornament-divider::before,
+  .ornament-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, oklch(var(--saffron) / 0.6), transparent);
+  }
+
+  /* Warm card hover */
+  .card-warm {
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .card-warm:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 48px oklch(var(--saffron) / 0.18), 0 4px 12px oklch(var(--burgundy) / 0.08);
+  }
+
+  /* Section heading style */
+  .section-heading {
+    font-family: "Playfair Display", "Georgia", serif;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: oklch(var(--burgundy));
+  }
+
+  /* Hero headline — maximum emotional impact */
+  .hero-headline {
+    font-family: "Playfair Display", "Georgia", serif;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    font-variation-settings: "wght" 800;
+  }
+
+  /* Pull quote / accent text */
+  .quote-text {
+    font-family: "Fraunces", "Playfair Display", "Georgia", serif;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* Eyebrow / label text */
+  .eyebrow {
+    font-family: "Figtree", "Segoe UI", system-ui, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: oklch(var(--saffron));
+  }
+
+  /* WhatsApp button */
+  .whatsapp-btn {
+    background: #25d366;
+    color: white;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .whatsapp-btn:hover {
+    background: #1da851;
+    transform: scale(1.03);
+  }
+
+  /* State badge */
+  .state-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: oklch(var(--saffron) / 0.12);
+    color: oklch(var(--saffron));
+    border: 1px solid oklch(var(--saffron) / 0.3);
+  }
+
+  /* Subtle mesh gradient background */
+  .mesh-bg {
+    background:
+      radial-gradient(ellipse 60% 50% at 10% 20%, oklch(var(--saffron) / 0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 90% 80%, oklch(var(--turmeric) / 0.07) 0%, transparent 70%),
+      oklch(var(--cream));
+  }
+
+  /* Deep section background */
+  .deep-section {
+    background: oklch(var(--burgundy));
+    color: oklch(var(--cream));
+  }
+
+  /* Text truncation helpers */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Price display */
+  .price-selling {
+    color: oklch(0.40 0.14 148);
+    font-weight: 700;
+    font-size: 1.25rem;
+    font-family: "Figtree", "Segoe UI", sans-serif;
+    line-height: 1;
+  }
+  .price-mrp {
+    color: oklch(0.60 0.025 55);
+    text-decoration: line-through;
+    font-size: 0.875rem;
+    font-family: "Figtree", "Segoe UI", sans-serif;
+  }
+
+  /* Savings badge — warm gold-green, nostalgic feel */
+  .savings-badge {
+    background: oklch(0.92 0.10 86);
+    color: oklch(0.32 0.10 60);
+    padding: 0.15rem 0.55rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: "Figtree", "Segoe UI", sans-serif;
+    letter-spacing: 0.02em;
+    border: 1px solid oklch(0.80 0.12 82);
+  }
+
+  /* Savings inline pill — used in product cards */
+  .savings-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: oklch(0.90 0.09 140);
+    color: oklch(0.30 0.10 148);
+    border: 1px solid oklch(0.78 0.12 140);
+    padding: 0.12rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: "Figtree", "Segoe UI", sans-serif;
+    letter-spacing: 0.01em;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out forwards;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, oklch(var(--muted)) 25%, oklch(var(--border)) 50%, oklch(var(--muted)) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Staggered animation delays */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: oklch(var(--muted));
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(var(--saffron) / 0.5);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--saffron));
+}
