@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -63,14 +64,16 @@ import {
   MousePointer,
   Package,
   Plus,
+  Settings2,
   ShoppingCart,
   Tag,
   TrendingUp,
+  Truck,
   Users,
   XCircle,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const MAKER_PASSWORD = "maker2024";
@@ -205,6 +208,326 @@ function getMakerTier(balance: number) {
   return (
     MAKER_TIERS.find((t) => balance >= t.min && balance <= t.max) ??
     MAKER_TIERS[0]
+  );
+}
+
+// ============================================
+// CAPACITY TAB
+// ============================================
+
+const CAPACITY_STORAGE_KEY = "maker_capacity_settings";
+
+interface CapacitySettings {
+  menuOpen: boolean;
+  maxOrdersPerDay: number;
+  maxOrdersPerDish: number;
+  prepTime: string;
+  activeDaysCapacity: boolean[];
+  deliveryPreference: string;
+}
+
+const DEFAULT_CAPACITY: CapacitySettings = {
+  menuOpen: true,
+  maxOrdersPerDay: 15,
+  maxOrdersPerDish: 5,
+  prepTime: "1 day",
+  activeDaysCapacity: [true, true, true, true, true, false, false],
+  deliveryPreference: "platform",
+};
+
+function CapacityTab() {
+  const [settings, setSettings] = useState<CapacitySettings>(() => {
+    try {
+      const stored = localStorage.getItem(CAPACITY_STORAGE_KEY);
+      return stored
+        ? (JSON.parse(stored) as CapacitySettings)
+        : DEFAULT_CAPACITY;
+    } catch {
+      return DEFAULT_CAPACITY;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CAPACITY_STORAGE_KEY, JSON.stringify(settings));
+    } catch {
+      // ignore
+    }
+  }, [settings]);
+
+  function handleSave() {
+    try {
+      localStorage.setItem(CAPACITY_STORAGE_KEY, JSON.stringify(settings));
+    } catch {
+      // ignore
+    }
+    toast.success("Capacity settings saved!");
+  }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h3 className="font-display font-bold text-lg text-foreground mb-1">
+          Capacity Settings
+        </h3>
+        <p className="text-muted-foreground font-body text-xs">
+          Control your menu availability, daily order limits, and delivery
+          preferences.
+        </p>
+      </div>
+
+      {/* Menu Status */}
+      <Card className="border-border shadow-xs">
+        <CardHeader className="pb-3">
+          <CardTitle className="font-display text-base flex items-center gap-2">
+            <Settings2 className="w-4 h-4 text-saffron" />
+            Menu Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-body text-sm font-semibold text-foreground">
+                {settings.menuOpen ? "Open for Orders" : "Paused"}
+              </p>
+              <p className="text-muted-foreground font-body text-xs mt-0.5 max-w-xs">
+                Pause your menu when you need a break. Orders won't come in
+                until you re-activate.
+              </p>
+            </div>
+            <Switch
+              checked={settings.menuOpen}
+              onCheckedChange={(val) =>
+                setSettings((prev) => ({ ...prev, menuOpen: val }))
+              }
+              data-ocid="maker.capacity.menu_switch"
+            />
+          </div>
+          {!settings.menuOpen && (
+            <div className="mt-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs font-body text-amber-700">
+              ⚠️ Your menu is currently paused. Customers cannot place new
+              orders.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Daily Capacity */}
+      <Card className="border-border shadow-xs">
+        <CardHeader className="pb-3">
+          <CardTitle className="font-display text-base flex items-center gap-2">
+            <Package className="w-4 h-4 text-saffron" />
+            Daily Capacity
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {/* Max Orders Per Day */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <Label className="font-body text-sm font-semibold">
+                Max Orders Per Day
+              </Label>
+              <span className="font-display text-2xl font-bold text-saffron">
+                {settings.maxOrdersPerDay}
+              </span>
+            </div>
+            <Slider
+              min={1}
+              max={50}
+              step={1}
+              value={[settings.maxOrdersPerDay]}
+              onValueChange={([val]) =>
+                setSettings((prev) => ({ ...prev, maxOrdersPerDay: val }))
+              }
+              className="w-full"
+              data-ocid="maker.capacity.orders_slider"
+            />
+            <div className="flex justify-between text-xs font-body text-muted-foreground mt-1">
+              <span>1 order</span>
+              <span>50 orders</span>
+            </div>
+          </div>
+
+          {/* Max Orders Per Dish */}
+          <div>
+            <Label className="font-body text-sm font-semibold mb-2 block">
+              Max Orders Per Dish
+            </Label>
+            <Input
+              type="number"
+              min={1}
+              max={50}
+              value={settings.maxOrdersPerDish}
+              onChange={(e) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  maxOrdersPerDish: Number(e.target.value) || 1,
+                }))
+              }
+              className="w-32 font-body"
+              data-ocid="maker.capacity.per_dish_input"
+            />
+            <p className="text-xs font-body text-muted-foreground mt-1">
+              Limit how many orders you'll accept for a single dish per day.
+            </p>
+          </div>
+
+          {/* Preparation Time */}
+          <div>
+            <Label className="font-body text-sm font-semibold mb-2 block">
+              Preparation Time
+            </Label>
+            <Select
+              value={settings.prepTime}
+              onValueChange={(val) =>
+                setSettings((prev) => ({ ...prev, prepTime: val }))
+              }
+            >
+              <SelectTrigger
+                className="w-48 font-body"
+                data-ocid="maker.capacity.prep_time_select"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  "30 min",
+                  "1 hour",
+                  "2 hours",
+                  "4 hours",
+                  "1 day",
+                  "2 days",
+                ].map((t) => (
+                  <SelectItem key={t} value={t} className="font-body">
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs font-body text-muted-foreground mt-1">
+              Time needed to prepare an order after payment confirmation.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Available Days */}
+      <Card className="border-border shadow-xs">
+        <CardHeader className="pb-3">
+          <CardTitle className="font-display text-base flex items-center gap-2">
+            <CalendarDays className="w-4 h-4 text-saffron" />
+            Available Days
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs font-body text-muted-foreground mb-3">
+            Select the days when you accept and prepare orders.
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {DAYS_OF_WEEK.map((day, i) => (
+              <button
+                key={day}
+                type="button"
+                onClick={() =>
+                  setSettings((prev) => {
+                    const next = [...prev.activeDaysCapacity];
+                    next[i] = !next[i];
+                    return { ...prev, activeDaysCapacity: next };
+                  })
+                }
+                data-ocid={`maker.capacity.day_toggle.${i + 1}`}
+                className={`w-11 h-11 rounded-xl text-xs font-semibold font-body transition-all border ${
+                  settings.activeDaysCapacity[i]
+                    ? "bg-saffron text-cream border-saffron shadow-sm"
+                    : "bg-background text-foreground/60 border-border hover:border-saffron/40"
+                }`}
+              >
+                {day}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs font-body text-muted-foreground mt-2">
+            {settings.activeDaysCapacity.filter(Boolean).length} day
+            {settings.activeDaysCapacity.filter(Boolean).length !== 1
+              ? "s"
+              : ""}{" "}
+            active per week
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Delivery Preference */}
+      <Card className="border-border shadow-xs">
+        <CardHeader className="pb-3">
+          <CardTitle className="font-display text-base flex items-center gap-2">
+            <Truck className="w-4 h-4 text-saffron" />
+            Delivery Preference
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup
+            value={settings.deliveryPreference}
+            onValueChange={(val) =>
+              setSettings((prev) => ({ ...prev, deliveryPreference: val }))
+            }
+            className="space-y-3"
+            data-ocid="maker.capacity.delivery_radio"
+          >
+            {[
+              {
+                value: "self",
+                label: "Self Delivery",
+                desc: "You arrange and handle delivery yourself.",
+              },
+              {
+                value: "platform",
+                label: "Platform Delivery",
+                desc: "Choudhary Aunty coordinates logistics for you.",
+              },
+              {
+                value: "third_party",
+                label: "Third-party Partner",
+                desc: "Delivery via courier partners (Delhivery, Shiprocket).",
+              },
+            ].map((opt) => (
+              <label
+                key={opt.value}
+                htmlFor={`delivery-${opt.value}`}
+                className={`flex items-start gap-3 p-3 rounded-xl border transition-colors cursor-pointer ${
+                  settings.deliveryPreference === opt.value
+                    ? "border-saffron/40 bg-saffron/5"
+                    : "border-border bg-background hover:border-saffron/20"
+                }`}
+              >
+                <RadioGroupItem
+                  value={opt.value}
+                  id={`delivery-${opt.value}`}
+                  className="mt-0.5"
+                />
+                <div>
+                  <span className="font-body text-sm font-semibold text-foreground cursor-pointer">
+                    {opt.label}
+                  </span>
+                  <p className="font-body text-xs text-muted-foreground mt-0.5">
+                    {opt.desc}
+                  </p>
+                </div>
+              </label>
+            ))}
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
+      {/* Save Button */}
+      <Button
+        onClick={handleSave}
+        className="w-full bg-saffron hover:bg-terracotta text-cream font-bold font-body py-5 rounded-xl transition-colors"
+        data-ocid="maker.capacity.save_button"
+      >
+        <CheckCircle2 className="w-4 h-4 mr-2" />
+        Save Capacity Settings
+      </Button>
+    </div>
   );
 }
 
@@ -528,6 +851,13 @@ function MakerDashboard() {
             className="font-body text-xs sm:text-sm data-[state=active]:bg-card data-[state=active]:text-saffron"
           >
             <Tag className="w-3.5 h-3.5 mr-1.5" /> Promotions
+          </TabsTrigger>
+          <TabsTrigger
+            value="capacity"
+            data-ocid="maker.capacity_tab"
+            className="font-body text-xs sm:text-sm data-[state=active]:bg-card data-[state=active]:text-saffron"
+          >
+            <Settings2 className="w-3.5 h-3.5 mr-1.5" /> Capacity
           </TabsTrigger>
         </TabsList>
 
@@ -1131,6 +1461,11 @@ function MakerDashboard() {
               </Link>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ── CAPACITY TAB ── */}
+        <TabsContent value="capacity">
+          <CapacityTab />
         </TabsContent>
       </Tabs>
 

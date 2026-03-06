@@ -1285,7 +1285,7 @@ function TestimonialsTab() {
 // CHEF APPROVALS TAB
 // ============================================
 
-type ApprovalStatus = "pending" | "approved" | "rejected";
+type ApprovalStatus = "pending" | "approved" | "rejected" | "under_review";
 
 interface ChefApplication {
   id: number;
@@ -1299,6 +1299,8 @@ interface ChefApplication {
   email: string;
   experience: string;
   dishes: string;
+  kitchenAddress?: string;
+  cuisineType?: string;
 }
 
 const MOCK_CHEF_APPLICATIONS: ChefApplication[] = [
@@ -1306,7 +1308,7 @@ const MOCK_CHEF_APPLICATIONS: ChefApplication[] = [
     id: 1,
     name: "Sunita Devi",
     city: "Varanasi",
-    state: "UP",
+    state: "Uttar Pradesh",
     specialty: "UP sweets & achar",
     appliedOn: "2026-03-01",
     status: "pending",
@@ -1314,6 +1316,8 @@ const MOCK_CHEF_APPLICATIONS: ChefApplication[] = [
     email: "sunita.varanasi@gmail.com",
     experience: "28 years",
     dishes: "Petha, Besan Ladoo, Nimbu Achar, Imli Chutney, Methi Mathri",
+    kitchenAddress: "12, Shiv Nagar Colony, Varanasi, UP 221001",
+    cuisineType: "Sweets & Mithai",
   },
   {
     id: 2,
@@ -1327,6 +1331,8 @@ const MOCK_CHEF_APPLICATIONS: ChefApplication[] = [
     email: "kamla.amritsar@gmail.com",
     experience: "32 years",
     dishes: "Amritsari Mirch Achar, Pinni, Gajak, Punjabi Wadi, Aam Chunda",
+    kitchenAddress: "45, Golden Avenue, Amritsar, Punjab 143001",
+    cuisineType: "Pickles & Achar",
   },
   {
     id: 3,
@@ -1340,6 +1346,39 @@ const MOCK_CHEF_APPLICATIONS: ChefApplication[] = [
     email: "meena.jaipur@gmail.com",
     experience: "20 years",
     dishes: "Ghevar, Churma, Rabri, Kaju Katli, Bajra Roti Masala",
+    kitchenAddress: "7, Vaishali Nagar, Jaipur, Rajasthan 302021",
+    cuisineType: "Sweets & Mithai",
+  },
+  {
+    id: 4,
+    name: "Parvati Mahto",
+    city: "Patna",
+    state: "Bihar",
+    specialty: "Bihari snacks & achar",
+    appliedOn: "2026-03-05",
+    status: "pending",
+    phone: "+91 95000 44444",
+    email: "parvati.patna@gmail.com",
+    experience: "35 years",
+    dishes: "Thekua, Sattu Ladoo, Aam Ka Achar, Tilkut, Makhana Namkeen",
+    kitchenAddress: "23, Rajendra Nagar, Patna, Bihar 800016",
+    cuisineType: "Namkeen & Snacks",
+  },
+  {
+    id: 5,
+    name: "Shanti Devi Negi",
+    city: "Dehradun",
+    state: "Uttarakhand",
+    specialty: "Pahadi chutneys & preserves",
+    appliedOn: "2026-03-06",
+    status: "pending",
+    phone: "+91 94000 55555",
+    email: "shanti.dehradun@gmail.com",
+    experience: "22 years",
+    dishes:
+      "Bhang Ki Chutney, Bal Mithai, Timru Achar, Buransh Sharbat, Gahat Dal Chutney",
+    kitchenAddress: "9, Rajpur Road, Dehradun, Uttarakhand 248001",
+    cuisineType: "Chutneys & Preserves",
   },
 ];
 
@@ -1356,6 +1395,7 @@ function ChefApprovalsTab() {
     MOCK_CHEF_APPLICATIONS,
   );
   const [rejectId, setRejectId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
   const [viewApp, setViewApp] = useState<ChefApplication | null>(null);
   const [hygieneChecks, setHygieneChecks] = useState<boolean[]>(
     Array(HYGIENE_CHECKLIST.length).fill(false),
@@ -1369,16 +1409,32 @@ function ChefApprovalsTab() {
     toast.success("Chef application approved! Profile will be created.");
   }
 
+  function setUnderReview(id: number) {
+    setApplications((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status: "under_review" } : a)),
+    );
+    toast("Application marked as Under Review.");
+  }
+
   function rejectConfirmed() {
     if (rejectId === null) return;
     setApplications((prev) =>
       prev.map((a) => (a.id === rejectId ? { ...a, status: "rejected" } : a)),
     );
-    toast.error("Application rejected.");
+    toast.error(
+      rejectReason
+        ? `Application rejected: ${rejectReason.slice(0, 40)}...`
+        : "Application rejected.",
+    );
     setRejectId(null);
+    setRejectReason("");
   }
 
-  const pending = applications.filter((a) => a.status === "pending").length;
+  const total = applications.length;
+  const pending = applications.filter(
+    (a) => a.status === "pending" || a.status === "under_review",
+  ).length;
+  const approved = applications.filter((a) => a.status === "approved").length;
 
   return (
     <div>
@@ -1394,6 +1450,43 @@ function ChefApprovalsTab() {
         <Badge className="bg-amber-100 text-amber-800 border-amber-200 font-body text-xs">
           {pending} Pending
         </Badge>
+      </div>
+
+      {/* KPI Row */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        <div
+          className="bg-muted/60 rounded-xl border border-border p-3 text-center"
+          data-ocid="admin.chef_approvals.card"
+        >
+          <div className="font-display text-2xl font-bold text-foreground">
+            {total}
+          </div>
+          <div className="font-body text-xs text-muted-foreground mt-0.5">
+            Total Applications
+          </div>
+        </div>
+        <div
+          className="bg-amber-50 rounded-xl border border-amber-200 p-3 text-center"
+          data-ocid="admin.chef_approvals.card"
+        >
+          <div className="font-display text-2xl font-bold text-amber-700">
+            {pending}
+          </div>
+          <div className="font-body text-xs text-amber-600 mt-0.5">
+            Pending Review
+          </div>
+        </div>
+        <div
+          className="bg-green-50 rounded-xl border border-green-200 p-3 text-center"
+          data-ocid="admin.chef_approvals.card"
+        >
+          <div className="font-display text-2xl font-bold text-green-700">
+            {approved}
+          </div>
+          <div className="font-body text-xs text-green-600 mt-0.5">
+            Approved Chefs
+          </div>
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">
@@ -1434,6 +1527,11 @@ function ChefApprovalsTab() {
                       Pending
                     </span>
                   )}
+                  {app.status === "under_review" && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold font-body bg-blue-100 text-blue-800 border border-blue-200">
+                      Under Review
+                    </span>
+                  )}
                   {app.status === "approved" && (
                     <span className="px-2 py-0.5 rounded-full text-xs font-semibold font-body bg-green-100 text-green-800 border border-green-200">
                       Approved
@@ -1446,14 +1544,14 @@ function ChefApprovalsTab() {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center gap-2 justify-end flex-wrap">
+                  <div className="flex items-center gap-1.5 justify-end flex-wrap">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => {
                         setViewApp(app);
                         setHygieneChecks(
-                          Array(HYGIENE_CHECKLIST.length).fill(false),
+                          Array(HYGIENE_CHECKLIST.length).fill(true),
                         );
                       }}
                       className="font-body text-xs"
@@ -1461,7 +1559,8 @@ function ChefApprovalsTab() {
                     >
                       View Details
                     </Button>
-                    {app.status === "pending" && (
+                    {(app.status === "pending" ||
+                      app.status === "under_review") && (
                       <>
                         <Button
                           size="sm"
@@ -1472,6 +1571,17 @@ function ChefApprovalsTab() {
                           <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                           Approve
                         </Button>
+                        {app.status === "pending" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setUnderReview(app.id)}
+                            className="font-body text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                            data-ocid={`admin.chef_approvals.secondary_button.${idx + 1}`}
+                          >
+                            Review
+                          </Button>
+                        )}
                         <Button
                           variant="destructive"
                           size="sm"
@@ -1495,7 +1605,7 @@ function ChefApprovalsTab() {
       {/* View Details Dialog */}
       <Dialog open={viewApp !== null} onOpenChange={() => setViewApp(null)}>
         <DialogContent
-          className="max-w-lg max-h-[80vh] overflow-y-auto"
+          className="max-w-lg max-h-[85vh] overflow-y-auto"
           data-ocid="admin.chef_approvals.dialog"
         >
           <DialogHeader>
@@ -1505,6 +1615,7 @@ function ChefApprovalsTab() {
           </DialogHeader>
           {viewApp && (
             <div className="space-y-5 py-2">
+              {/* Basic Info */}
               <div className="grid grid-cols-2 gap-3 text-sm font-body">
                 <div>
                   <span className="text-muted-foreground text-xs">City</span>
@@ -1535,6 +1646,7 @@ function ChefApprovalsTab() {
                   <p className="font-semibold">{viewApp.specialty}</p>
                 </div>
               </div>
+
               <div>
                 <p className="text-muted-foreground text-xs font-body mb-1">
                   Signature Dishes
@@ -1544,38 +1656,142 @@ function ChefApprovalsTab() {
                 </p>
               </div>
 
-              {/* Hygiene Checklist */}
+              {/* Kitchen Details Section */}
+              <div className="border-t border-border pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <ChefHat className="w-4 h-4 text-saffron" />
+                  <h4 className="font-display font-bold text-sm text-foreground">
+                    Kitchen Details
+                  </h4>
+                </div>
+                <div className="grid grid-cols-1 gap-2 text-sm font-body bg-muted/40 rounded-xl p-3">
+                  {viewApp.kitchenAddress && (
+                    <div>
+                      <span className="text-muted-foreground text-xs block">
+                        Kitchen Address
+                      </span>
+                      <p className="font-semibold text-sm">
+                        {viewApp.kitchenAddress}
+                      </p>
+                    </div>
+                  )}
+                  {viewApp.cuisineType && (
+                    <div>
+                      <span className="text-muted-foreground text-xs block">
+                        Cuisine Type
+                      </span>
+                      <p className="font-semibold text-sm">
+                        {viewApp.cuisineType}
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-muted-foreground text-xs block">
+                      Experience
+                    </span>
+                    <p className="font-semibold text-sm">
+                      {viewApp.experience}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Kitchen Photos Placeholder */}
+              <div className="border-t border-border pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-display font-bold text-sm text-foreground">
+                    Kitchen Photos
+                  </h4>
+                  <span className="text-xs font-body px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full border border-blue-200">
+                    3 photos submitted
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {[1, 2, 3].map((n) => (
+                    <div
+                      key={n}
+                      className="w-20 h-20 rounded-xl bg-muted/60 border border-border flex items-center justify-center"
+                    >
+                      <span className="text-2xl">📷</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs font-body text-muted-foreground mt-2">
+                  Photos to be collected via WhatsApp verification
+                </p>
+              </div>
+
+              {/* Identity Verification */}
+              <div className="flex items-center justify-between py-3 px-3 rounded-xl bg-muted/40 border border-border">
+                <div>
+                  <p className="font-body text-sm font-semibold text-foreground">
+                    Identity Verification
+                  </p>
+                  <p className="text-xs font-body text-muted-foreground">
+                    Aadhaar / Govt ID
+                  </p>
+                </div>
+                <span className="text-xs font-body px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full border border-amber-200 font-semibold">
+                  Pending Collection
+                </span>
+              </div>
+
+              {/* Self-Certified Hygiene Checklist */}
               <div className="border-t border-border pt-4">
                 <div className="flex items-center gap-2 mb-3">
                   <ClipboardCheck className="w-4 h-4 text-saffron" />
                   <h4 className="font-display font-bold text-sm text-foreground">
-                    Kitchen Hygiene Checklist
+                    Self-Certified Hygiene Checklist
                   </h4>
                 </div>
-                <div className="space-y-3">
-                  {HYGIENE_CHECKLIST.map((item, i) => (
-                    <div key={item} className="flex items-start gap-3">
-                      <Checkbox
-                        id={`hygiene-${i}`}
-                        checked={hygieneChecks[i]}
-                        onCheckedChange={(checked) => {
-                          setHygieneChecks((prev) => {
-                            const next = [...prev];
-                            next[i] = checked === true;
-                            return next;
-                          });
-                        }}
-                        data-ocid={`admin.hygiene.checkbox.${i + 1}`}
-                      />
-                      <label
-                        htmlFor={`hygiene-${i}`}
-                        className="font-body text-xs text-foreground/80 leading-relaxed cursor-pointer"
-                      >
+                <div className="space-y-2.5 mb-4">
+                  {HYGIENE_CHECKLIST.map((item) => (
+                    <div
+                      key={item}
+                      className="flex items-start gap-2.5 bg-green-50/60 rounded-lg px-3 py-2"
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                      <span className="font-body text-xs text-foreground/80 leading-relaxed">
                         {item}
-                      </label>
+                      </span>
                     </div>
                   ))}
                 </div>
+
+                {/* Admin Hygiene Score */}
+                <div className="border-t border-border pt-3">
+                  <p className="font-body text-xs font-semibold text-muted-foreground mb-2">
+                    Admin Hygiene Assessment:
+                  </p>
+                  <div className="space-y-2.5">
+                    {HYGIENE_CHECKLIST.map((item, i) => (
+                      <div
+                        key={`admin-${item}`}
+                        className="flex items-start gap-3"
+                      >
+                        <Checkbox
+                          id={`hygiene-${i}`}
+                          checked={hygieneChecks[i]}
+                          onCheckedChange={(checked) => {
+                            setHygieneChecks((prev) => {
+                              const next = [...prev];
+                              next[i] = checked === true;
+                              return next;
+                            });
+                          }}
+                          data-ocid={`admin.hygiene.checkbox.${i + 1}`}
+                        />
+                        <label
+                          htmlFor={`hygiene-${i}`}
+                          className="font-body text-xs text-foreground/80 leading-relaxed cursor-pointer"
+                        >
+                          {item}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="mt-4 flex items-center gap-3">
                   <Label className="font-body text-xs">
                     Hygiene Score (1–10):
@@ -1610,7 +1826,8 @@ function ChefApprovalsTab() {
             >
               Close
             </Button>
-            {viewApp?.status === "pending" && (
+            {(viewApp?.status === "pending" ||
+              viewApp?.status === "under_review") && (
               <Button
                 onClick={() => {
                   if (viewApp) approve(viewApp.id);
@@ -1627,10 +1844,15 @@ function ChefApprovalsTab() {
         </DialogContent>
       </Dialog>
 
-      {/* Reject Dialog */}
+      {/* Reject Dialog with rejection reason */}
       <AlertDialog
         open={rejectId !== null}
-        onOpenChange={() => setRejectId(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRejectId(null);
+            setRejectReason("");
+          }
+        }}
       >
         <AlertDialogContent data-ocid="admin.chef_approvals.dialog">
           <AlertDialogHeader>
@@ -1642,8 +1864,27 @@ function ChefApprovalsTab() {
               WhatsApp.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="px-1 pb-2">
+            <Label className="font-body text-xs font-semibold mb-1.5 block">
+              Reason for Rejection{" "}
+              <span className="text-muted-foreground font-normal">
+                (optional)
+              </span>
+            </Label>
+            <Textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="e.g. Kitchen hygiene concerns, incomplete information..."
+              rows={3}
+              className="font-body text-sm"
+              data-ocid="admin.chef_approvals.textarea"
+            />
+          </div>
           <AlertDialogFooter>
-            <AlertDialogCancel data-ocid="admin.chef_approvals.cancel_button">
+            <AlertDialogCancel
+              data-ocid="admin.chef_approvals.cancel_button"
+              onClick={() => setRejectReason("")}
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -1651,7 +1892,7 @@ function ChefApprovalsTab() {
               className="bg-destructive text-destructive-foreground"
               data-ocid="admin.chef_approvals.confirm_button"
             >
-              Reject
+              Reject Application
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
