@@ -147,11 +147,21 @@ export default function ShopPage() {
       !searchQuery ||
       (() => {
         const q = searchQuery.toLowerCase();
+        const ingredientsMatch = Array.isArray((p as LocalProduct).ingredients)
+          ? (p as LocalProduct).ingredients.some((ing: string) =>
+              ing.toLowerCase().includes(q),
+            )
+          : typeof (p as LocalProduct).ingredients === "string"
+            ? ((p as LocalProduct).ingredients as unknown as string)
+                .toLowerCase()
+                .includes(q)
+            : false;
         return (
           p.name.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q) ||
           p.state.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q)
+          p.category.toLowerCase().includes(q) ||
+          ingredientsMatch
         );
       })();
     const matchesSeason =
@@ -533,6 +543,105 @@ export default function ShopPage() {
               )}
             </div>
           </div>
+
+          {/* Active filter badge pills */}
+          {(searchQuery ||
+            selectedSeason !== "all" ||
+            activeAdvancedCount > 0 ||
+            activeState) && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1 bg-saffron/10 border border-saffron/30 text-saffron text-xs font-body font-semibold px-2.5 py-1 rounded-full">
+                  🔍 "{searchQuery}"
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="ml-0.5 hover:text-terracotta"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {activeState && (
+                <span className="inline-flex items-center gap-1 bg-saffron/10 border border-saffron/30 text-saffron text-xs font-body font-semibold px-2.5 py-1 rounded-full">
+                  📍 {activeState}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate({ to: "/shop", search: { state: undefined } })
+                    }
+                    className="ml-0.5 hover:text-terracotta"
+                    aria-label="Clear state filter"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedSeason !== "all" && (
+                <span className="inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-body font-semibold px-2.5 py-1 rounded-full">
+                  {
+                    SEASON_OPTIONS.find((s) => s.value === selectedSeason)
+                      ?.label
+                  }
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSeason("all")}
+                    className="ml-0.5 hover:text-blue-900"
+                    aria-label="Clear season filter"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedPriceRange !== "all" && (
+                <span className="inline-flex items-center gap-1 bg-muted border border-border text-foreground text-xs font-body font-semibold px-2.5 py-1 rounded-full">
+                  💰{" "}
+                  {selectedPriceRange === "under150"
+                    ? "Under ₹150"
+                    : selectedPriceRange === "150-250"
+                      ? "₹150–₹250"
+                      : selectedPriceRange === "250-350"
+                        ? "₹250–₹350"
+                        : "₹350+"}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPriceRange("all")}
+                    className="ml-0.5 hover:text-muted-foreground"
+                    aria-label="Clear price filter"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedCategory !== "all" && (
+                <span className="inline-flex items-center gap-1 bg-saffron/10 border border-saffron/30 text-saffron text-xs font-body font-semibold px-2.5 py-1 rounded-full capitalize">
+                  🏷️ {selectedCategory}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory("all")}
+                    className="ml-0.5 hover:text-terracotta"
+                    aria-label="Clear category filter"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedDiet !== "all" && (
+                <span className="inline-flex items-center gap-1 bg-green-50 border border-green-200 text-green-700 text-xs font-body font-semibold px-2.5 py-1 rounded-full">
+                  🌿 {selectedDiet === "veg" ? "Veg" : "Vegan"}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDiet("all")}
+                    className="ml-0.5 hover:text-green-900"
+                    aria-label="Clear diet filter"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Result count */}
           {!isLoading && (

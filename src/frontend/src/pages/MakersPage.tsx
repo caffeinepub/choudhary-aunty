@@ -3,9 +3,39 @@ import { getMakerImage } from "@/constants/images";
 import { getMakerStoryByName } from "@/constants/makerStories";
 import { useGetAllMakers } from "@/hooks/useQueries";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, Heart, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+const SAVED_MAKERS_KEY = "choudhary_saved_makers";
+
+function useSavedMakers() {
+  const [savedIds, setSavedIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(SAVED_MAKERS_KEY) ?? "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  function toggle(id: string, name: string) {
+    setSavedIds((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
+      localStorage.setItem(SAVED_MAKERS_KEY, JSON.stringify(next));
+      if (prev.includes(id)) {
+        toast.info(`Removed ${name.split(" ")[0]} from favourites`);
+      } else {
+        toast.success(`Added ${name.split(" ")[0]} to favourites ❤️`);
+      }
+      return next;
+    });
+  }
+
+  return { savedIds, toggle };
+}
 
 const container = {
   hidden: { opacity: 0 },
@@ -24,6 +54,7 @@ export default function MakersPage() {
 
   const makersQuery = useGetAllMakers();
   const makers = makersQuery.data ?? [];
+  const { savedIds, toggle } = useSavedMakers();
 
   return (
     <main className="min-h-screen pt-16">
@@ -117,15 +148,43 @@ export default function MakersPage() {
                       <p className="text-muted-foreground text-sm font-body leading-relaxed flex-1 line-clamp-3">
                         {maker.bio}
                       </p>
-                      <Link
-                        to="/maker/$id"
-                        params={{ id: maker.id.toString() }}
-                        className="mt-4 inline-flex items-center gap-1.5 text-saffron hover:text-terracotta font-semibold text-sm font-body transition-colors"
-                        data-ocid={`makers.meet_link.${idx + 1}`}
-                      >
-                        Meet {maker.name.split(" ")[0]}{" "}
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
+                      <div className="flex items-center justify-between mt-4">
+                        <Link
+                          to="/maker/$id"
+                          params={{ id: maker.id.toString() }}
+                          className="inline-flex items-center gap-1.5 text-saffron hover:text-terracotta font-semibold text-sm font-body transition-colors"
+                          data-ocid={`makers.meet_link.${idx + 1}`}
+                        >
+                          Meet {maker.name.split(" ")[0]}{" "}
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toggle(maker.id.toString(), maker.name);
+                          }}
+                          data-ocid={`makers.favourite_toggle.${idx + 1}`}
+                          className={`p-2 rounded-full border transition-all ${
+                            savedIds.includes(maker.id.toString())
+                              ? "bg-red-50 border-red-200 text-red-500"
+                              : "bg-background border-border text-muted-foreground hover:border-red-300 hover:text-red-400"
+                          }`}
+                          title={
+                            savedIds.includes(maker.id.toString())
+                              ? "Remove from favourites"
+                              : "Save to favourites"
+                          }
+                        >
+                          <Heart
+                            className={`w-4 h-4 transition-all ${
+                              savedIds.includes(maker.id.toString())
+                                ? "fill-red-500 stroke-red-500"
+                                : ""
+                            }`}
+                          />
+                        </button>
+                      </div>
                       {getMakerStoryByName(maker.name) && (
                         <Link
                           to="/maker/$id"

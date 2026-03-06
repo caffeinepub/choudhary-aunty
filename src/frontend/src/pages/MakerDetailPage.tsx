@@ -10,14 +10,45 @@ import {
 import { getMakerStory } from "@/constants/makerStories";
 import { useGetMakerWithProducts } from "@/hooks/useQueries";
 import { Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SiWhatsapp } from "react-icons/si";
+import { toast } from "sonner";
+
+const SAVED_MAKERS_KEY = "choudhary_saved_makers";
+
+function useSavedMakers() {
+  const [savedIds, setSavedIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(SAVED_MAKERS_KEY) ?? "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  function toggle(id: string, name: string) {
+    setSavedIds((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
+      localStorage.setItem(SAVED_MAKERS_KEY, JSON.stringify(next));
+      if (prev.includes(id)) {
+        toast.info(`Removed ${name.split(" ")[0]} from favourites`);
+      } else {
+        toast.success(`Added ${name.split(" ")[0]} to favourites ❤️`);
+      }
+      return next;
+    });
+  }
+
+  return { savedIds, toggle };
+}
 
 export default function MakerDetailPage() {
   const { id } = useParams({ from: "/maker/$id" });
   const makerId = BigInt(id);
+  const { savedIds, toggle } = useSavedMakers();
 
   const makerQuery = useGetMakerWithProducts(makerId);
   const data = makerQuery.data;
@@ -154,15 +185,38 @@ export default function MakerDetailPage() {
               </div>
             </div>
 
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 whatsapp-btn px-5 py-3 text-sm font-semibold w-fit"
-            >
-              <SiWhatsapp className="w-4 h-4" />
-              Order from {maker.name.split(" ")[0]}
-            </a>
+            <div className="flex items-center gap-3 flex-wrap">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 whatsapp-btn px-5 py-3 text-sm font-semibold w-fit"
+              >
+                <SiWhatsapp className="w-4 h-4" />
+                Order from {maker.name.split(" ")[0]}
+              </a>
+              <button
+                type="button"
+                onClick={() => toggle(maker.id.toString(), maker.name)}
+                data-ocid="maker.favourite_toggle"
+                className={`inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold font-body border transition-all ${
+                  savedIds.includes(maker.id.toString())
+                    ? "bg-red-50 border-red-200 text-red-600 hover:bg-red-100"
+                    : "bg-background border-border text-muted-foreground hover:border-red-300 hover:text-red-500"
+                }`}
+              >
+                <Heart
+                  className={`w-4 h-4 transition-all ${
+                    savedIds.includes(maker.id.toString())
+                      ? "fill-red-500 stroke-red-500"
+                      : ""
+                  }`}
+                />
+                {savedIds.includes(maker.id.toString())
+                  ? "Saved"
+                  : "Save Maker"}
+              </button>
+            </div>
           </motion.div>
         </div>
 

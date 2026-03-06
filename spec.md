@@ -1,73 +1,84 @@
-# Choudhary Aunty — Advertising & Promotion System
+# Choudhary Aunty — Marketplace Core Architecture
 
 ## Current State
 
-A fully built homemade regional food marketplace with:
-- 5 makers (Bihar, Haryana, Punjab, UP, Uttarakhand) with 10 products each
-- Customer login, CRM portal, loyalty program (Rishta Rewards / Asharfi points)
-- Maker Dashboard, Platform Dashboard, Admin panel
-- WhatsApp-based ordering with 50% advance UPI model
-- Authorization component (admin/user/guest roles)
-- Backend: Motoko with full product, order, customer, CRM campaign management
+The platform already has:
+- Full product/maker backend (Motoko) with 5 makers, 10 Bihar products, orders, testimonials
+- Customer login (`/login`), customer profile (`/my-profile`), CRM portal (`/crm`)
+- Maker dashboard (`/maker-dashboard`), platform dashboard (`/platform-dashboard`), admin panel (`/admin`)
+- Advertising & promotion system (`/ads`) with auction ranking
+- Loyalty program (Rishta Rewards / Asharfi points)
+- Shop by state, product detail pages, maker profiles
+- Home page, Our Story, Blog, Gift Hampers, Corporate Orders, Press, Order Tracker, Become an Aunty pages
+- Order management backend (createOrder, updateOrderStatus, getAllOrders)
+- CRM campaigns, customer events, RFM segmentation frontend
 
 ## Requested Changes (Diff)
 
 ### Add
 
-**Backend:**
-- `AdCampaign` type: id, makerId, name, adType, status, dailyBudget, bidPerClick, startDate, endDate, targetState, targetCategory, qualityScore, createdAt, totalSpend, totalImpressions, totalClicks, totalOrders, totalRevenue
-- `AdType` variant: `#sponsoredDish | #featuredChef | #categoryPromotion | #cityPromotion`
-- `AdBid` type: id, campaignId, productId, bidAmount, adRankScore (= bidAmount × qualityScore × relevanceScore), timestamp
-- `AdImpression` type: id, campaignId, productId, makerId, timestamp, converted (Bool)
-- `AdClick` type: id, campaignId, productId, makerId, timestamp, costCharged, convertedToOrder (Bool)
-- Backend functions:
-  - `createAdCampaign(makerId, name, adType, dailyBudget, bidPerClick, targetState, targetCategory)` → CampaignId
-  - `updateAdCampaign(campaign)` → ()
-  - `pauseAdCampaign(id)` / `resumeAdCampaign(id)` → ()
-  - `recordAdImpression(campaignId, productId)` → ()
-  - `recordAdClick(campaignId, productId)` → Float (cost charged)
-  - `recordAdConversion(campaignId, productId, orderValue)` → ()
-  - `getAdCampaignsByMaker(makerId)` → [AdCampaign]
-  - `getAllAdCampaigns()` → [AdCampaign] (admin only)
-  - `getRankedAds(state, category)` → [AdBid] sorted by ad_rank_score desc (public)
-  - `getAdAnalytics(campaignId)` → AdAnalytics record
-  - `getPlatformAdRevenue()` → Float (admin only)
-- Ad rank formula: `adRankScore = bidAmount × qualityScore × relevanceScore`
-- qualityScore seeded at 0.8 (adjustable), relevanceScore computed from state/category match
+1. **Chef (Aunty) Self-Registration Flow** — A proper `/chef-register` page where chefs can submit their application (name, phone, city, cuisine specialty, signature dishes) that creates a pending Chef record awaiting admin approval. Separate from the admin-managed onboarding already present.
 
-**Frontend pages:**
-- `/ads` — Chef Ads Manager: create/manage campaigns, choose ad type, set budget and bid
-- `/ads/new` — New Campaign form
-- `/ads/[id]` — Campaign detail with analytics (impressions, clicks, orders, CPO, ROAS)
-- `/platform-dashboard` — Add "Ad Revenue" KPI card and ads performance section
+2. **Chef Dashboard — Full Functional Upgrade**
+   - Upload/edit dishes directly from the dashboard (currently admin-only)
+   - Set prices, prep time, max orders per day, availability schedule
+   - Accept or decline individual orders (order queue view with action buttons)
+   - View earnings summary (total revenue, pending payouts, completed)
+   - Run promotional campaigns (link to /ads)
 
-**Frontend integrations:**
-- Shop page: sponsored dish cards visually marked (gold "Sponsored" badge), ranked higher in results
-- Home page: "Featured Chef" section pulls from active featuredChef ad campaigns
-- Shop page category view: "Category Promotion" pins appear at top of category
-- Shop page state view: "City Promotion" pins appear at top of state section
-- Navbar "More" menu: add "Advertise" link pointing to `/ads`
+3. **Admin Dashboard — Full Approval Workflow**
+   - Pending chef approvals list with Approve/Reject actions
+   - Pending dish approvals list
+   - Kitchen verification checklist (hygiene score, photo review)
+   - Chef performance table (orders completed, rating, revenue)
+   - Full order monitoring with status update controls
+
+4. **Order Lifecycle — Full 7-Stage State Machine**
+   - Current backend uses: pending, confirmed, preparing, dispatched, delivered
+   - Upgrade to: order_created → payment_confirmed → chef_acceptance → food_preparation → ready_for_pickup → out_for_delivery → delivered
+   - Order tracker page to reflect all 7 stages
+
+5. **Search & Filter — Enhanced Discovery**
+   - Search bar across all products by name, ingredient, region
+   - Filters: price range, spice level, oil level, rating, availability, diet type
+   - Results count display
+
+6. **Chef Onboarding Backend APIs**
+   - `submitChefApplication(...)` — creates pending chef record
+   - `approveChef(id)` / `rejectChef(id)` — admin approval
+   - `updateChefAvailability(id, schedule)` — chef sets daily availability
+   - `setMaxOrdersPerDay(id, max)` — chef capacity setting
+
+7. **Dish Management APIs (Chef-side)**
+   - `chefCreateProduct(...)` — chef submits dish for approval
+   - `chefUpdateProduct(...)` — chef edits their own dish
+   - `setDishAvailability(productId, availabilityType)` — today/tomorrow/pre-order/seasonal/festival
+
+8. **Save Favorite Chefs** — Customer can mark a maker as favourite from their profile and maker detail pages
+
+9. **Reorder Feature** — On order history page, one-click reorder sends same product to WhatsApp
 
 ### Modify
 
-- `MakerDashboardPage.tsx` — add "My Ads" tab linking to `/ads` and showing summary stats (total spend, ROAS)
-- `PlatformDashboardPage.tsx` — add "Ad Revenue" KPI and ad performance table
-- `ShopPage.tsx` — integrate getRankedAds result to reorder and badge sponsored products
-- `HomePage.tsx` — Featured Chef section pulls active featured chef ad data
+- **Order Status Enum** — Expand from 5 states to 7 states to match the required lifecycle
+- **Maker/Chef type** — Add fields: `verificationStatus`, `cuisineSpecialty`, `maxOrdersPerDay`, `availabilitySchedule`, `yearsExperience`, `approvalStatus`
+- **Product type** — Add: `availabilityType`, `prepTime`, `rating`
+- **Admin Page** — Add chef approval, dish approval, kitchen verification, chef performance sections
+- **Chef Dashboard** — Add order queue, accept/decline actions, dish upload form, earnings view
+- **Order Tracker** — Update to show all 7 lifecycle stages
+- **My Profile Page** — Add saved favorite chefs, reorder button on order history
 
 ### Remove
 
-Nothing removed.
+- Nothing removed (all existing features preserved)
 
 ## Implementation Plan
 
-1. Extend Motoko backend with AdCampaign, AdBid, AdImpression, AdClick types and all ad management functions
-2. Regenerate backend.d.ts bindings
-3. Build `/ads` Chef Campaign Dashboard: campaign list, status toggles, performance summary cards
-4. Build `/ads/new` Create Campaign form: ad type selector, budget, bid, targeting (state/category)
-5. Build `/ads/[id]` Campaign Analytics: impressions, clicks, orders, CPO, ROAS charts
-6. Integrate sponsored ranking into ShopPage product list (call getRankedAds, reorder, badge)
-7. Integrate Featured Chef ads into HomePage featured section
-8. Add Ad Revenue KPI to PlatformDashboardPage
-9. Add "My Ads" tab/card to MakerDashboardPage
-10. Add "Advertise" to navbar More menu
+1. Generate new Motoko backend with extended Chef type, 7-stage OrderStatus, chef application workflow, dish availability types, chef-side product management
+2. Build `/chef-register` page — chef application form with WhatsApp CTA
+3. Upgrade `/maker-dashboard` — add order queue tab, accept/decline buttons, dish upload form, earnings view, availability scheduler
+4. Upgrade `/admin` page — add chef approvals tab, dish approvals tab, kitchen verification tab, chef performance table
+5. Upgrade `/order-tracker` — show all 7 stages on the timeline
+6. Upgrade `/shop` — add full-text search + all filters
+7. Upgrade `/my-profile` — add saved makers section, reorder button
+8. Upgrade `/maker/$id` detail page — add "Save as Favourite" heart button

@@ -1,4 +1,14 @@
 import { AsharfiBadge } from "@/components/loyalty/AsharfiBadge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +21,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -20,6 +38,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { getMakerImage } from "@/constants/images";
 import {
   useGetAllMakers,
@@ -31,6 +51,8 @@ import {
   ArrowRight,
   Award,
   BarChart2,
+  CalendarDays,
+  CheckCircle2,
   ChefHat,
   Eye,
   EyeOff,
@@ -40,14 +62,16 @@ import {
   Megaphone,
   MousePointer,
   Package,
+  Plus,
   ShoppingCart,
   Tag,
-  TrendingDown,
   TrendingUp,
   Users,
+  XCircle,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const MAKER_PASSWORD = "maker2024";
 
@@ -65,28 +89,42 @@ const MAKER_TIERS = [
 
 const ORDER_STAGES = [
   {
-    key: "pending",
-    label: "Pending",
-    color: "bg-yellow-400",
-    textColor: "text-yellow-700",
-    bg: "bg-yellow-50",
+    key: "order_created",
+    label: "Order Created",
+    color: "bg-slate-400",
+    textColor: "text-slate-700",
+    bg: "bg-slate-50",
   },
   {
-    key: "confirmed",
-    label: "Confirmed",
+    key: "payment_confirmed",
+    label: "Payment",
     color: "bg-blue-400",
     textColor: "text-blue-700",
     bg: "bg-blue-50",
   },
   {
-    key: "preparing",
+    key: "chef_acceptance",
+    label: "Accepted",
+    color: "bg-saffron",
+    textColor: "text-amber-700",
+    bg: "bg-amber-50",
+  },
+  {
+    key: "food_preparation",
     label: "Preparing",
     color: "bg-orange-400",
     textColor: "text-orange-700",
     bg: "bg-orange-50",
   },
   {
-    key: "dispatched",
+    key: "ready_for_pickup",
+    label: "Ready",
+    color: "bg-yellow-400",
+    textColor: "text-yellow-700",
+    bg: "bg-yellow-50",
+  },
+  {
+    key: "out_for_delivery",
     label: "Dispatched",
     color: "bg-purple-400",
     textColor: "text-purple-700",
@@ -100,6 +138,40 @@ const ORDER_STAGES = [
     bg: "bg-green-50",
   },
 ];
+
+// Order action status type
+type LocalOrderStatus =
+  | "order_created"
+  | "payment_confirmed"
+  | "chef_acceptance"
+  | "food_preparation"
+  | "ready_for_pickup"
+  | "out_for_delivery"
+  | "delivered"
+  | "cancelled"
+  | "pending"
+  | "confirmed"
+  | "preparing"
+  | "dispatched";
+
+interface LocalOrderState {
+  [orderId: string]: LocalOrderStatus;
+}
+
+interface NewDishForm {
+  name: string;
+  description: string;
+  sellingPrice: string;
+  mrp: string;
+  category: string;
+  ingredients: string;
+  preparationMethod: string;
+  availability: string;
+  minBatchKg: string;
+  prepTime: string;
+}
+
+const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const PROMO_OFFERS = [
   {
@@ -194,6 +266,37 @@ function MakerDashboard() {
   const ordersQuery = useGetAllOrders();
 
   const [selectedMakerIdx, setSelectedMakerIdx] = useState(0);
+  // Order accept/decline local state
+  const [localOrderStatuses, setLocalOrderStatuses] = useState<LocalOrderState>(
+    {},
+  );
+  const [declineOrderId, setDeclineOrderId] = useState<string | null>(null);
+  // Add dish sheet
+  const [showAddDish, setShowAddDish] = useState(false);
+  const [newDish, setNewDish] = useState<NewDishForm>({
+    name: "",
+    description: "",
+    sellingPrice: "",
+    mrp: "",
+    category: "achar",
+    ingredients: "",
+    preparationMethod: "",
+    availability: "Available Today",
+    minBatchKg: "1",
+    prepTime: "60",
+  });
+  // Availability scheduler state
+  const [openForOrders, setOpenForOrders] = useState(true);
+  const [maxOrders, setMaxOrders] = useState([10]);
+  const [activeDays, setActiveDays] = useState<boolean[]>([
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false,
+  ]);
 
   const makers = makersQuery.data ?? [];
   const products = productsQuery.data ?? [];
@@ -220,9 +323,9 @@ function MakerDashboard() {
 
   const platformFee = Math.round(mockRevenue * 0.1);
   const logisticsFee = Math.round(mockRevenue * 0.05);
-  const netEarnings = mockRevenue - platformFee - logisticsFee;
-  const advanceReceived = Math.round(mockRevenue * 0.5);
-  const balancePending = Math.round(mockRevenue * 0.35);
+  const _netEarnings = mockRevenue - platformFee - logisticsFee;
+  const _advanceReceived = Math.round(mockRevenue * 0.5);
+  const _balancePending = Math.round(mockRevenue * 0.35);
 
   const stageCounts = ORDER_STAGES.reduce(
     (acc, stage) => {
@@ -233,11 +336,77 @@ function MakerDashboard() {
   );
   const mockOrderCount = (selectedMakerIdx + 1) * 8 + 5;
   if (makerOrders.length === 0) {
-    stageCounts.pending = Math.round(mockOrderCount * 0.3);
-    stageCounts.confirmed = Math.round(mockOrderCount * 0.15);
-    stageCounts.preparing = Math.round(mockOrderCount * 0.2);
-    stageCounts.dispatched = Math.round(mockOrderCount * 0.1);
+    stageCounts.order_created = Math.round(mockOrderCount * 0.1);
+    stageCounts.payment_confirmed = Math.round(mockOrderCount * 0.15);
+    stageCounts.chef_acceptance = Math.round(mockOrderCount * 0.1);
+    stageCounts.food_preparation = Math.round(mockOrderCount * 0.2);
+    stageCounts.ready_for_pickup = Math.round(mockOrderCount * 0.1);
+    stageCounts.out_for_delivery = Math.round(mockOrderCount * 0.1);
     stageCounts.delivered = Math.round(mockOrderCount * 0.25);
+  }
+
+  // Mock order queue with action states
+  const mockOrderQueue = [
+    {
+      id: "OQ-001",
+      customer: "Priya Sharma",
+      phone: "+91 98000 11111",
+      items: "Aam Ka Achar × 2kg",
+      amount: 380,
+      stage: "order_created",
+    },
+    {
+      id: "OQ-002",
+      customer: "Raj Kumar",
+      phone: "+91 97000 22222",
+      items: "Sattu Ladoo × 1kg",
+      amount: 250,
+      stage: "payment_confirmed",
+    },
+    {
+      id: "OQ-003",
+      customer: "Meena Singh",
+      phone: "+91 96000 33333",
+      items: "Tilkut × 500g",
+      amount: 180,
+      stage: "chef_acceptance",
+    },
+  ];
+
+  function getOrderLocalStatus(orderId: string, defaultStage: string): string {
+    return localOrderStatuses[orderId] ?? defaultStage;
+  }
+
+  function acceptOrder(orderId: string) {
+    setLocalOrderStatuses((prev) => ({
+      ...prev,
+      [orderId]: "chef_acceptance",
+    }));
+    toast.success("Order accepted! Customers notified.");
+  }
+
+  function declineOrder(orderId: string) {
+    setLocalOrderStatuses((prev) => ({ ...prev, [orderId]: "cancelled" }));
+    toast.error("Order declined.");
+    setDeclineOrderId(null);
+  }
+
+  function handleAddDish(e: React.FormEvent) {
+    e.preventDefault();
+    toast.success(`"${newDish.name}" submitted for admin approval.`);
+    setShowAddDish(false);
+    setNewDish({
+      name: "",
+      description: "",
+      sellingPrice: "",
+      mrp: "",
+      category: "achar",
+      ingredients: "",
+      preparationMethod: "",
+      availability: "Available Today",
+      minBatchKg: "1",
+      prepTime: "60",
+    });
   }
 
   const asharfiBalance = getMakerBalance(
@@ -329,410 +498,885 @@ function MakerDashboard() {
         </div>
       </div>
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <KpiCard
-          label="Total Revenue"
-          value={`₹${mockRevenue.toLocaleString("en-IN")}`}
-          sub="All time"
-          icon={IndianRupee}
-          color="bg-green-100 text-green-600"
-          ocid="maker.dashboard.card"
-        />
-        <KpiCard
-          label="This Month"
-          value={`₹${monthRevenue.toLocaleString("en-IN")}`}
-          sub="30% of total"
-          icon={TrendingUp}
-          color="bg-saffron/10 text-saffron"
-          ocid="maker.dashboard.card"
-        />
-        <KpiCard
-          label="Total Orders"
-          value={String(makerOrders.length || mockOrderCount)}
-          sub="All time"
-          icon={ShoppingCart}
-          color="bg-blue-100 text-blue-600"
-          ocid="maker.dashboard.card"
-        />
-        <KpiCard
-          label="Pending Orders"
-          value={String(stageCounts.pending)}
-          sub="Need action"
-          icon={Package}
-          color="bg-amber-100 text-amber-600"
-          ocid="maker.dashboard.card"
-        />
-      </div>
+      {/* Tabbed Dashboard */}
+      <Tabs defaultValue="overview">
+        <TabsList className="bg-muted/50 p-1 h-auto gap-1 flex-wrap mb-6">
+          <TabsTrigger
+            value="overview"
+            data-ocid="maker.overview_tab"
+            className="font-body text-xs sm:text-sm data-[state=active]:bg-card data-[state=active]:text-saffron"
+          >
+            <BarChart2 className="w-3.5 h-3.5 mr-1.5" /> Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="orders"
+            data-ocid="maker.orders_tab"
+            className="font-body text-xs sm:text-sm data-[state=active]:bg-card data-[state=active]:text-saffron"
+          >
+            <ShoppingCart className="w-3.5 h-3.5 mr-1.5" /> Order Queue
+          </TabsTrigger>
+          <TabsTrigger
+            value="products"
+            data-ocid="maker.products_tab"
+            className="font-body text-xs sm:text-sm data-[state=active]:bg-card data-[state=active]:text-saffron"
+          >
+            <Package className="w-3.5 h-3.5 mr-1.5" /> Products
+          </TabsTrigger>
+          <TabsTrigger
+            value="promotions"
+            data-ocid="maker.promotions_tab"
+            className="font-body text-xs sm:text-sm data-[state=active]:bg-card data-[state=active]:text-saffron"
+          >
+            <Tag className="w-3.5 h-3.5 mr-1.5" /> Promotions
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Order Pipeline */}
-      <Card className="border-border shadow-xs hover:shadow-warm transition-shadow">
-        <CardHeader className="pb-4">
-          <CardTitle className="font-display text-lg flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-saffron" />
-            Order Pipeline
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-stretch gap-2 sm:gap-3">
-            {ORDER_STAGES.map((stage, idx) => (
-              <div key={stage.key} className="flex-1 text-center">
-                <div className={`rounded-xl p-3 sm:p-4 border ${stage.bg}`}>
-                  <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    {stageCounts[stage.key] ?? 0}
-                  </div>
+        {/* ── OVERVIEW TAB ── */}
+        <TabsContent value="overview" className="space-y-6">
+          {/* KPI Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <KpiCard
+              label="Total Revenue"
+              value={`₹${mockRevenue.toLocaleString("en-IN")}`}
+              sub="All time"
+              icon={IndianRupee}
+              color="bg-green-100 text-green-600"
+              ocid="maker.dashboard.card"
+            />
+            <KpiCard
+              label="This Month"
+              value={`₹${monthRevenue.toLocaleString("en-IN")}`}
+              sub="30% of total"
+              icon={TrendingUp}
+              color="bg-saffron/10 text-saffron"
+              ocid="maker.dashboard.card"
+            />
+            <KpiCard
+              label="Total Orders"
+              value={String(makerOrders.length || mockOrderCount)}
+              sub="All time"
+              icon={ShoppingCart}
+              color="bg-blue-100 text-blue-600"
+              ocid="maker.dashboard.card"
+            />
+            <KpiCard
+              label="Pending Orders"
+              value={String(stageCounts.order_created ?? 0)}
+              sub="Need action"
+              icon={Package}
+              color="bg-amber-100 text-amber-600"
+              ocid="maker.dashboard.card"
+            />
+          </div>
+
+          {/* Availability Scheduler */}
+          <Card className="border-saffron/20 shadow-xs">
+            <CardHeader className="pb-4">
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-saffron" />
+                Today's Availability
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-body text-sm font-semibold text-foreground">
+                    Open for Orders Today
+                  </p>
+                  <p className="text-muted-foreground font-body text-xs">
+                    Customers can place new orders
+                  </p>
+                </div>
+                <Switch
+                  checked={openForOrders}
+                  onCheckedChange={setOpenForOrders}
+                  data-ocid="maker.availability.switch"
+                />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="font-body text-sm font-semibold">
+                    Max Orders Today
+                  </Label>
+                  <span className="font-display text-lg font-bold text-saffron">
+                    {maxOrders[0]}
+                  </span>
+                </div>
+                <Slider
+                  min={1}
+                  max={20}
+                  step={1}
+                  value={maxOrders}
+                  onValueChange={setMaxOrders}
+                  className="w-full"
+                  data-ocid="maker.availability.slider"
+                />
+              </div>
+              <div>
+                <Label className="font-body text-sm font-semibold mb-3 block">
+                  Active Days
+                </Label>
+                <div className="flex gap-2 flex-wrap">
+                  {DAYS_OF_WEEK.map((day, i) => (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() =>
+                        setActiveDays((prev) => {
+                          const next = [...prev];
+                          next[i] = !next[i];
+                          return next;
+                        })
+                      }
+                      data-ocid={`maker.availability.day_toggle.${i + 1}`}
+                      className={`w-10 h-10 rounded-xl text-xs font-semibold font-body transition-all border ${
+                        activeDays[i]
+                          ? "bg-saffron text-cream border-saffron"
+                          : "bg-background text-foreground/60 border-border hover:border-saffron/40"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Earnings Breakdown */}
+          <Card className="border-border shadow-xs">
+            <CardHeader className="pb-4">
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                <IndianRupee className="w-5 h-5 text-saffron" />
+                Earnings Breakdown
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                {[
+                  {
+                    label: "Total Revenue",
+                    value: `₹${(45200).toLocaleString("en-IN")}`,
+                    color: "text-foreground",
+                    bg: "bg-muted/60",
+                  },
+                  {
+                    label: "Pending Payout",
+                    value: `₹${(12400).toLocaleString("en-IN")}`,
+                    color: "text-amber-600",
+                    bg: "bg-amber-50 border-amber-100",
+                  },
+                  {
+                    label: "Platform Fee (15%)",
+                    value: `₹${(6780).toLocaleString("en-IN")}`,
+                    color: "text-red-500",
+                    bg: "bg-red-50 border-red-100",
+                  },
+                  {
+                    label: "Net Earnings",
+                    value: `₹${(38420).toLocaleString("en-IN")}`,
+                    color: "text-green-600",
+                    bg: "bg-green-50 border-green-100",
+                  },
+                ].map((item, idx) => (
                   <div
-                    className={`text-xs font-body font-semibold mt-1 ${stage.textColor}`}
+                    key={item.label}
+                    className={`rounded-xl border p-3 text-center ${item.bg}`}
+                    data-ocid={`maker.earnings.card.${idx + 1}`}
+                  >
+                    <div
+                      className={`font-display text-xl font-bold ${item.color}`}
+                    >
+                      {item.value}
+                    </div>
+                    <div className="font-body text-xs text-muted-foreground mt-0.5">
+                      {item.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Sparkline bars */}
+              <div className="pt-2 border-t border-border">
+                <p className="text-xs font-body text-muted-foreground mb-2">
+                  Weekly revenue trend
+                </p>
+                <div className="flex items-end gap-1.5 h-12">
+                  {[6400, 7800, 5200, 8900, 7100, 9600].map((val, i) => (
+                    <div
+                      key={`week-${i + 1}`}
+                      className="flex-1 bg-saffron/40 hover:bg-saffron rounded-t transition-colors"
+                      style={{ height: `${(val / 9600) * 100}%` }}
+                      title={`Week ${i + 1}: ₹${val.toLocaleString("en-IN")}`}
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-between text-[10px] font-body text-muted-foreground mt-1">
+                  {["W1", "W2", "W3", "W4", "W5", "W6"].map((w) => (
+                    <span key={w}>{w}</span>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Pipeline */}
+          <Card className="border-border shadow-xs">
+            <CardHeader className="pb-4">
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                <BarChart2 className="w-5 h-5 text-saffron" />
+                7-Stage Order Pipeline
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-stretch gap-1 sm:gap-2 overflow-x-auto">
+                {ORDER_STAGES.map((stage) => (
+                  <div
+                    key={stage.key}
+                    className="flex-1 text-center min-w-[60px]"
+                  >
+                    <div className={`rounded-xl p-2 sm:p-3 border ${stage.bg}`}>
+                      <div className="font-display text-xl sm:text-2xl font-bold text-foreground">
+                        {stageCounts[stage.key] ?? 0}
+                      </div>
+                      <div
+                        className={`text-[10px] sm:text-xs font-body font-semibold mt-0.5 ${stage.textColor} leading-tight`}
+                      >
+                        {stage.label}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer Insights */}
+          <Card className="border-border shadow-xs">
+            <CardHeader className="pb-4">
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                <Users className="w-5 h-5 text-saffron" />
+                Customer Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  {
+                    label: "Unique Customers",
+                    value: uniqueCustomers,
+                    color: "text-blue-600",
+                    icon: Users,
+                  },
+                  {
+                    label: "Repeat Rate",
+                    value: "62%",
+                    color: "text-green-600",
+                    icon: TrendingUp,
+                  },
+                  {
+                    label: "Top State",
+                    value: maker.state.split(" ")[0],
+                    color: "text-saffron",
+                    icon: MapPin,
+                  },
+                  {
+                    label: "Avg Order Value",
+                    value: `₹${avgOrderValue}`,
+                    color: "text-terracotta",
+                    icon: IndianRupee,
+                  },
+                ].map((item, idx) => (
+                  <div
+                    key={item.label}
+                    className="text-center p-3 rounded-xl bg-muted/60 border border-border"
+                    data-ocid={`maker.insights.card.${idx + 1}`}
+                  >
+                    <item.icon
+                      className={`w-5 h-5 mx-auto mb-1.5 ${item.color}`}
+                    />
+                    <div
+                      className={`font-display text-xl font-bold ${item.color}`}
+                    >
+                      {item.value}
+                    </div>
+                    <div className="font-body text-xs text-muted-foreground">
+                      {item.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Loyalty */}
+          <Card className="border-saffron/20 bg-gradient-to-br from-saffron/5 to-terracotta/5 shadow-xs">
+            <CardHeader className="pb-4">
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                <Award className="w-5 h-5 text-saffron" />
+                Rishta Rewards Snapshot
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex-1 min-w-48">
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="font-display text-4xl font-bold text-saffron">
+                      {asharfiBalance.toLocaleString("en-IN")}
+                    </span>
+                    <span className="font-body text-muted-foreground text-sm">
+                      Asharfi
+                    </span>
+                  </div>
+                  <AsharfiBadge
+                    balance={asharfiBalance}
+                    tier={tier.name as "Choudhary Aunty Legend"}
+                    size="sm"
+                  />
+                </div>
+                <div className="space-y-1.5 text-sm font-body">
+                  <div className="text-muted-foreground">Recent earnings:</div>
+                  <div className="text-green-600 font-semibold">
+                    +500 — 12 months active
+                  </div>
+                  <div className="text-green-600 font-semibold">
+                    +150 — 3 five-star reviews
+                  </div>
+                  <div className="text-green-600 font-semibold">
+                    +75 — Weekly order streak
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── ORDER QUEUE TAB ── */}
+        <TabsContent value="orders" className="space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-display font-bold text-lg text-foreground">
+              Live Order Queue
+            </h3>
+            <Badge className="bg-amber-100 text-amber-800 border-amber-200 font-body text-xs">
+              {
+                mockOrderQueue.filter(
+                  (o) =>
+                    getOrderLocalStatus(o.id, o.stage) === "order_created" ||
+                    getOrderLocalStatus(o.id, o.stage) === "payment_confirmed",
+                ).length
+              }{" "}
+              Pending
+            </Badge>
+          </div>
+          <div className="space-y-3">
+            {mockOrderQueue.map((order, idx) => {
+              const currentStatus = getOrderLocalStatus(order.id, order.stage);
+              const isCancelled = currentStatus === "cancelled";
+              const isAccepted = currentStatus === "chef_acceptance";
+              return (
+                <Card
+                  key={order.id}
+                  className={`border-border shadow-xs ${isCancelled ? "opacity-50" : ""}`}
+                  data-ocid={`maker.orders.item.${idx + 1}`}
+                >
+                  <CardContent className="py-4 px-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="font-display font-bold text-foreground text-sm">
+                            {order.customer}
+                          </span>
+                          <span className="text-xs font-body text-muted-foreground">
+                            {order.phone}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold font-body border ${
+                              isCancelled
+                                ? "bg-red-100 text-red-700 border-red-200"
+                                : isAccepted
+                                  ? "bg-green-100 text-green-700 border-green-200"
+                                  : currentStatus === "payment_confirmed"
+                                    ? "bg-blue-100 text-blue-700 border-blue-200"
+                                    : "bg-slate-100 text-slate-700 border-slate-200"
+                            }`}
+                          >
+                            {isCancelled
+                              ? "Declined"
+                              : isAccepted
+                                ? "Accepted"
+                                : currentStatus.replace(/_/g, " ")}
+                          </span>
+                        </div>
+                        <p className="font-body text-sm text-foreground/80">
+                          {order.items}
+                        </p>
+                        <p className="font-body text-sm font-bold text-saffron mt-0.5">
+                          ₹{order.amount}
+                        </p>
+                      </div>
+                      {!isCancelled && !isAccepted && (
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={() => acceptOrder(order.id)}
+                            className="bg-green-600 hover:bg-green-700 text-white font-body text-xs"
+                            data-ocid={`maker.orders.accept_button.${idx + 1}`}
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                            Accept
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setDeclineOrderId(order.id)}
+                            className="font-body text-xs"
+                            data-ocid={`maker.orders.delete_button.${idx + 1}`}
+                          >
+                            <XCircle className="w-3.5 h-3.5 mr-1" />
+                            Decline
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          {/* 7-stage reference */}
+          <Card className="border-border shadow-xs mt-4">
+            <CardHeader className="pb-3">
+              <CardTitle className="font-display text-base">
+                Order Lifecycle Reference
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {ORDER_STAGES.map((stage) => (
+                  <span
+                    key={stage.key}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-semibold font-body border ${stage.bg} ${stage.textColor}`}
                   >
                     {stage.label}
-                  </div>
-                </div>
-                {idx < ORDER_STAGES.length - 1 && (
-                  <div className="hidden sm:flex justify-end pr-0 mt-auto">
-                    <ArrowRight className="w-3 h-3 text-muted-foreground absolute translate-x-4" />
-                  </div>
-                )}
+                  </span>
+                ))}
               </div>
-            ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ── PRODUCTS TAB ── */}
+        <TabsContent value="products" className="space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-display font-bold text-lg text-foreground">
+              My Products ({makerProducts.length})
+            </h3>
+            <Button
+              size="sm"
+              onClick={() => setShowAddDish(true)}
+              className="bg-saffron hover:bg-terracotta text-cream font-body text-xs"
+              data-ocid="maker.products.add_button"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              Add New Dish
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+          {makerProducts.length === 0 ? (
+            <div
+              className="text-center py-12 text-muted-foreground font-body text-sm"
+              data-ocid="maker.products.empty_state"
+            >
+              No products listed yet. Add your first dish!
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-border">
+              <Table data-ocid="maker.products.table">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-body text-xs">Product</TableHead>
+                    <TableHead className="font-body text-xs">Price</TableHead>
+                    <TableHead className="font-body text-xs">
+                      Category
+                    </TableHead>
+                    <TableHead className="font-body text-xs text-right">
+                      Mock Orders
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[...makerProducts]
+                    .map((p, i) => ({ ...p, mockOrders: i * 3 + 1 }))
+                    .sort((a, b) => b.mockOrders - a.mockOrders)
+                    .slice(0, 10)
+                    .map((product, idx) => (
+                      <TableRow
+                        key={product.id.toString()}
+                        data-ocid={`maker.products.row.${idx + 1}`}
+                      >
+                        <TableCell className="font-body text-sm py-2.5">
+                          <div className="font-medium text-foreground line-clamp-1">
+                            {product.name}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-2.5">
+                          <span className="text-saffron font-bold font-body text-sm">
+                            ₹{product.sellingPrice}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="capitalize text-xs font-body px-2 py-0.5 bg-muted rounded-full border border-border">
+                            {product.category}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right py-2.5">
+                          <span className="font-body text-sm font-semibold text-foreground">
+                            {product.mockOrders}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </TabsContent>
 
-      {/* Product Performance + Payment Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Product Performance */}
-        <Card className="border-border shadow-xs hover:shadow-warm transition-shadow">
-          <CardHeader className="pb-4">
-            <CardTitle className="font-display text-lg flex items-center gap-2">
-              <Package className="w-5 h-5 text-saffron" />
-              Product Performance
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {makerProducts.length === 0 ? (
-              <div
-                className="text-center py-10 text-muted-foreground font-body text-sm px-5"
-                data-ocid="maker.products.empty_state"
-              >
-                No products listed yet.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-body text-xs">
-                        Product
-                      </TableHead>
-                      <TableHead className="font-body text-xs">Price</TableHead>
-                      <TableHead className="font-body text-xs text-right">
-                        Mock Orders
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {[...makerProducts]
-                      .map((p, idx) => ({ ...p, mockOrders: idx * 3 + 1 }))
-                      .sort((a, b) => b.mockOrders - a.mockOrders)
-                      .slice(0, 6)
-                      .map((product, idx) => (
-                        <TableRow
-                          key={product.id.toString()}
-                          data-ocid={`maker.products.row.${idx + 1}`}
-                        >
-                          <TableCell className="font-body text-sm py-2.5">
-                            <div className="font-medium text-foreground line-clamp-1">
-                              {product.name}
-                            </div>
-                            <div className="text-xs text-muted-foreground capitalize">
-                              {product.category}
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-2.5">
-                            <span className="text-saffron font-bold font-body text-sm">
-                              ₹{product.sellingPrice}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right py-2.5">
-                            <span className="font-body text-sm font-semibold text-foreground">
-                              {product.mockOrders}
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Payment Breakdown */}
-        <Card className="border-border shadow-xs hover:shadow-warm transition-shadow">
-          <CardHeader className="pb-4">
-            <CardTitle className="font-display text-lg flex items-center gap-2">
-              <IndianRupee className="w-5 h-5 text-saffron" />
-              Payment Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-border">
-              <span className="font-body text-sm text-muted-foreground">
-                Gross Revenue
-              </span>
-              <span className="font-body text-sm font-bold text-foreground">
-                ₹{mockRevenue.toLocaleString("en-IN")}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <TrendingDown className="w-3.5 h-3.5 text-red-500" />
-                <span className="font-body text-sm text-muted-foreground">
-                  Platform Fee (10%)
-                </span>
-              </div>
-              <span className="font-body text-sm font-semibold text-red-500">
-                −₹{platformFee.toLocaleString("en-IN")}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <TrendingDown className="w-3.5 h-3.5 text-orange-500" />
-                <span className="font-body text-sm text-muted-foreground">
-                  Logistics Est. (5%)
-                </span>
-              </div>
-              <span className="font-body text-sm font-semibold text-orange-500">
-                −₹{logisticsFee.toLocaleString("en-IN")}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-green-50 border border-green-100">
-              <span className="font-body text-sm font-bold text-green-700">
-                Net Maker Earnings (85%)
-              </span>
-              <span className="font-display text-base font-bold text-green-700">
-                ₹{netEarnings.toLocaleString("en-IN")}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <span className="font-body text-sm text-muted-foreground">
-                Advance Received (50%)
-              </span>
-              <span className="font-body text-sm font-semibold text-blue-600">
-                ₹{advanceReceived.toLocaleString("en-IN")}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <span className="font-body text-sm text-muted-foreground">
-                Balance Pending (35%)
-              </span>
-              <span className="font-body text-sm font-semibold text-amber-600">
-                ₹{balancePending.toLocaleString("en-IN")}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Active Promo Offers + Customer Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Promo Offers */}
-        <Card className="border-border shadow-xs hover:shadow-warm transition-shadow">
-          <CardHeader className="pb-4">
-            <CardTitle className="font-display text-lg flex items-center gap-2">
-              <Tag className="w-5 h-5 text-saffron" />
-              Active Promo Offers
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {PROMO_OFFERS.map((offer, idx) => (
-              <div
-                key={offer.title}
-                className={`flex items-center justify-between p-3 rounded-xl border border-border ${offer.bg}`}
-                data-ocid={`maker.promo.item.${idx + 1}`}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-body font-semibold text-foreground">
-                    {offer.title}
-                  </div>
-                  <div className="text-xs font-body text-muted-foreground">
-                    Expires: {offer.expires}
-                  </div>
+        {/* ── PROMOTIONS TAB ── */}
+        <TabsContent value="promotions" className="space-y-4">
+          <h3 className="font-display font-bold text-lg text-foreground mb-2">
+            Active Promo Offers
+          </h3>
+          {PROMO_OFFERS.map((offer, idx) => (
+            <div
+              key={offer.title}
+              className={`flex items-center justify-between p-4 rounded-xl border border-border ${offer.bg}`}
+              data-ocid={`maker.promo.item.${idx + 1}`}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-body font-semibold text-foreground">
+                  {offer.title}
                 </div>
-                <Badge
-                  className={`text-xs font-body shrink-0 ml-2 ${offer.color} bg-transparent border-current`}
-                  variant="outline"
-                >
-                  {offer.status}
-                </Badge>
+                <div className="text-xs font-body text-muted-foreground">
+                  Expires: {offer.expires}
+                </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Customer Insights */}
-        <Card className="border-border shadow-xs hover:shadow-warm transition-shadow">
-          <CardHeader className="pb-4">
-            <CardTitle className="font-display text-lg flex items-center gap-2">
-              <Users className="w-5 h-5 text-saffron" />
-              Customer Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                {
-                  label: "Unique Customers",
-                  value: uniqueCustomers,
-                  color: "text-blue-600",
-                  icon: Users,
-                },
-                {
-                  label: "Repeat Rate",
-                  value: "62%",
-                  color: "text-green-600",
-                  icon: TrendingUp,
-                },
-                {
-                  label: "Top State",
-                  value: maker.state.split(" ")[0],
-                  color: "text-saffron",
-                  icon: MapPin,
-                },
-                {
-                  label: "Avg Order Value",
-                  value: `₹${avgOrderValue}`,
-                  color: "text-terracotta",
-                  icon: IndianRupee,
-                },
-              ].map((item, idx) => (
-                <div
-                  key={item.label}
-                  className="text-center p-3 rounded-xl bg-muted/60 border border-border"
-                  data-ocid={`maker.insights.card.${idx + 1}`}
-                >
-                  <item.icon
-                    className={`w-5 h-5 mx-auto mb-1.5 ${item.color}`}
-                  />
+              <Badge
+                className={`text-xs font-body shrink-0 ml-2 ${offer.color} bg-transparent border-current`}
+                variant="outline"
+              >
+                {offer.status}
+              </Badge>
+            </div>
+          ))}
+          <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 shadow-xs mt-4">
+            <CardHeader className="pb-4">
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-amber-600" />
+                Ad Campaigns
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                {[
+                  {
+                    label: "Total Ad Spend",
+                    value: "₹1,182",
+                    icon: IndianRupee,
+                    color: "text-terracotta",
+                    bg: "bg-orange-100",
+                  },
+                  {
+                    label: "Blended ROAS",
+                    value: "3.5×",
+                    icon: TrendingUp,
+                    color: "text-green-600",
+                    bg: "bg-green-100",
+                  },
+                  {
+                    label: "Active Campaigns",
+                    value: "3",
+                    icon: MousePointer,
+                    color: "text-purple-600",
+                    bg: "bg-purple-100",
+                  },
+                ].map((kpi) => (
                   <div
-                    className={`font-display text-xl font-bold ${item.color}`}
+                    key={kpi.label}
+                    className="text-center p-3 rounded-xl bg-white/60 border border-amber-200"
+                    data-ocid="maker.ad_campaigns.card"
                   >
-                    {item.value}
+                    <div
+                      className={`w-7 h-7 rounded-lg ${kpi.bg} flex items-center justify-center mx-auto mb-2`}
+                    >
+                      <kpi.icon className={`w-3.5 h-3.5 ${kpi.color}`} />
+                    </div>
+                    <div
+                      className={`font-display text-lg font-bold ${kpi.color}`}
+                    >
+                      {kpi.value}
+                    </div>
+                    <div className="font-body text-xs text-amber-700 mt-0.5">
+                      {kpi.label}
+                    </div>
                   </div>
-                  <div className="font-body text-xs text-muted-foreground">
-                    {item.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Loyalty Section */}
-      <Card className="border-saffron/20 bg-gradient-to-br from-saffron/5 to-terracotta/5 shadow-xs">
-        <CardHeader className="pb-4">
-          <CardTitle className="font-display text-lg flex items-center gap-2">
-            <Award className="w-5 h-5 text-saffron" />
-            Rishta Rewards Snapshot
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex-1 min-w-48">
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="font-display text-4xl font-bold text-saffron">
-                  {asharfiBalance.toLocaleString("en-IN")}
-                </span>
-                <span className="font-body text-muted-foreground text-sm">
-                  Asharfi
-                </span>
+                ))}
               </div>
-              <AsharfiBadge
-                balance={asharfiBalance}
-                tier={tier.name as "Choudhary Aunty Legend"}
-                size="sm"
+              <Link
+                to="/ads"
+                data-ocid="maker.ad_campaigns.manage_button"
+                className="inline-flex items-center gap-2 bg-saffron hover:bg-terracotta text-cream font-semibold px-4 py-2.5 rounded-xl text-sm font-body transition-colors"
+              >
+                <Megaphone className="w-4 h-4" />
+                Manage Campaigns
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Add Dish Sheet */}
+      <Sheet open={showAddDish} onOpenChange={setShowAddDish}>
+        <SheetContent
+          className="w-full sm:max-w-lg overflow-y-auto"
+          data-ocid="maker.add_dish.sheet"
+        >
+          <SheetHeader>
+            <SheetTitle className="font-display">Add New Dish</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleAddDish} className="space-y-4 mt-4 pb-8">
+            <div>
+              <Label className="font-body text-xs mb-1.5 block">
+                Dish Name *
+              </Label>
+              <Input
+                value={newDish.name}
+                onChange={(e) =>
+                  setNewDish((p) => ({ ...p, name: e.target.value }))
+                }
+                placeholder="e.g. Special Aam Achar"
+                className="font-body"
+                data-ocid="maker.add_dish.name_input"
+                required
               />
             </div>
-            <div className="space-y-1.5 text-sm font-body">
-              <div className="text-muted-foreground">Recent earnings:</div>
-              <div className="text-green-600 font-semibold">
-                +500 — 12 months active
+            <div>
+              <Label className="font-body text-xs mb-1.5 block">
+                Description
+              </Label>
+              <Textarea
+                value={newDish.description}
+                onChange={(e) =>
+                  setNewDish((p) => ({ ...p, description: e.target.value }))
+                }
+                rows={2}
+                className="font-body text-sm"
+                data-ocid="maker.add_dish.description_textarea"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="font-body text-xs mb-1.5 block">
+                  Selling Price (₹) *
+                </Label>
+                <Input
+                  type="number"
+                  value={newDish.sellingPrice}
+                  onChange={(e) =>
+                    setNewDish((p) => ({ ...p, sellingPrice: e.target.value }))
+                  }
+                  className="font-body"
+                  required
+                  data-ocid="maker.add_dish.price_input"
+                />
               </div>
-              <div className="text-green-600 font-semibold">
-                +150 — 3 five-star reviews
-              </div>
-              <div className="text-green-600 font-semibold">
-                +75 — Weekly order streak
+              <div>
+                <Label className="font-body text-xs mb-1.5 block">
+                  MRP (₹)
+                </Label>
+                <Input
+                  type="number"
+                  value={newDish.mrp}
+                  onChange={(e) =>
+                    setNewDish((p) => ({ ...p, mrp: e.target.value }))
+                  }
+                  className="font-body"
+                />
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* My Ad Campaigns Section */}
-      <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 shadow-xs">
-        <CardHeader className="pb-4">
-          <CardTitle className="font-display text-lg flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-amber-600" />
-            My Ad Campaigns
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            {[
-              {
-                label: "Total Ad Spend",
-                value: "₹1,182",
-                icon: IndianRupee,
-                color: "text-terracotta",
-                bg: "bg-orange-100",
-              },
-              {
-                label: "Blended ROAS",
-                value: "3.5×",
-                icon: TrendingUp,
-                color: "text-green-600",
-                bg: "bg-green-100",
-              },
-              {
-                label: "Active Campaigns",
-                value: "3",
-                icon: MousePointer,
-                color: "text-purple-600",
-                bg: "bg-purple-100",
-              },
-            ].map((kpi) => (
-              <div
-                key={kpi.label}
-                className="text-center p-3 rounded-xl bg-white/60 border border-amber-200"
-                data-ocid="maker.ad_campaigns.card"
+            <div>
+              <Label className="font-body text-xs mb-1.5 block">
+                Category *
+              </Label>
+              <Select
+                value={newDish.category}
+                onValueChange={(v) =>
+                  setNewDish((p) => ({ ...p, category: v }))
+                }
               >
-                <div
-                  className={`w-7 h-7 rounded-lg ${kpi.bg} flex items-center justify-center mx-auto mb-2`}
+                <SelectTrigger data-ocid="maker.add_dish.category_select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    "achar",
+                    "sweets",
+                    "ladoo",
+                    "namkeen",
+                    "snacks",
+                    "barfi",
+                    "masala",
+                    "chutney",
+                  ].map((c) => (
+                    <SelectItem
+                      key={c}
+                      value={c}
+                      className="capitalize font-body"
+                    >
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="font-body text-xs mb-1.5 block">
+                Ingredients (comma-separated)
+              </Label>
+              <Input
+                value={newDish.ingredients}
+                onChange={(e) =>
+                  setNewDish((p) => ({ ...p, ingredients: e.target.value }))
+                }
+                placeholder="Raw mango, mustard oil, salt..."
+                className="font-body"
+                data-ocid="maker.add_dish.ingredients_input"
+              />
+            </div>
+            <div>
+              <Label className="font-body text-xs mb-1.5 block">
+                Preparation Method
+              </Label>
+              <Textarea
+                value={newDish.preparationMethod}
+                onChange={(e) =>
+                  setNewDish((p) => ({
+                    ...p,
+                    preparationMethod: e.target.value,
+                  }))
+                }
+                rows={2}
+                className="font-body text-sm"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="font-body text-xs mb-1.5 block">
+                  Availability
+                </Label>
+                <Select
+                  value={newDish.availability}
+                  onValueChange={(v) =>
+                    setNewDish((p) => ({ ...p, availability: v }))
+                  }
                 >
-                  <kpi.icon className={`w-3.5 h-3.5 ${kpi.color}`} />
-                </div>
-                <div className={`font-display text-lg font-bold ${kpi.color}`}>
-                  {kpi.value}
-                </div>
-                <div className="font-body text-xs text-amber-700 mt-0.5">
-                  {kpi.label}
-                </div>
+                  <SelectTrigger data-ocid="maker.add_dish.availability_select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      "Available Today",
+                      "Available Tomorrow",
+                      "Pre-Order",
+                      "Seasonal",
+                      "Festival Special",
+                    ].map((a) => (
+                      <SelectItem key={a} value={a} className="font-body">
+                        {a}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            ))}
-          </div>
-          <Link
-            to="/ads"
-            data-ocid="maker.ad_campaigns.manage_button"
-            className="inline-flex items-center gap-2 bg-saffron hover:bg-terracotta text-cream font-semibold px-4 py-2.5 rounded-xl text-sm font-body transition-colors"
-          >
-            <Megaphone className="w-4 h-4" />
-            Manage Campaigns
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </CardContent>
-      </Card>
+              <div>
+                <Label className="font-body text-xs mb-1.5 block">
+                  Min Batch (kg)
+                </Label>
+                <Input
+                  type="number"
+                  min={0.5}
+                  step={0.5}
+                  value={newDish.minBatchKg}
+                  onChange={(e) =>
+                    setNewDish((p) => ({ ...p, minBatchKg: e.target.value }))
+                  }
+                  className="font-body"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="font-body text-xs mb-1.5 block">
+                Prep Time (minutes)
+              </Label>
+              <Input
+                type="number"
+                value={newDish.prepTime}
+                onChange={(e) =>
+                  setNewDish((p) => ({ ...p, prepTime: e.target.value }))
+                }
+                className="font-body"
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAddDish(false)}
+                className="flex-1 font-body"
+                data-ocid="maker.add_dish.cancel_button"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 bg-saffron hover:bg-terracotta text-cream font-body"
+                data-ocid="maker.add_dish.submit_button"
+              >
+                Submit for Approval
+              </Button>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
+
+      {/* Decline Order Confirm */}
+      <AlertDialog
+        open={declineOrderId !== null}
+        onOpenChange={() => setDeclineOrderId(null)}
+      >
+        <AlertDialogContent data-ocid="maker.orders.dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">
+              Decline Order?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-body text-sm">
+              Are you sure you want to decline this order? The customer will be
+              notified via WhatsApp.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-ocid="maker.orders.cancel_button">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => declineOrderId && declineOrder(declineOrderId)}
+              className="bg-destructive text-destructive-foreground"
+              data-ocid="maker.orders.confirm_button"
+            >
+              Decline Order
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -26,15 +26,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getProductImage } from "@/constants/images";
+import { getMakerImage, getProductImage } from "@/constants/images";
 import { useAuth } from "@/context/AuthContext";
 import { useActor } from "@/hooks/useActor";
-import { useGetAllProducts } from "@/hooks/useQueries";
+import { useGetAllMakers, useGetAllProducts } from "@/hooks/useQueries";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
   Edit2,
   Gift,
+  Heart,
   Loader2,
   LogOut,
   ShoppingBag,
@@ -186,12 +187,33 @@ const PREF_OPTIONS = {
   region: ["Bihar", "Haryana", "Punjab", "Uttar Pradesh", "Uttarakhand", ""],
 };
 
+const SAVED_MAKERS_KEY = "choudhary_saved_makers";
+
 export default function MyProfilePage() {
   const { customerAccount, isLoggedIn, isLoading, logout, refreshAccount } =
     useAuth();
   const { actor } = useActor();
   const navigate = useNavigate();
   const productsQuery = useGetAllProducts();
+  const makersQuery = useGetAllMakers();
+
+  // Saved makers from localStorage (synced with heart toggle on Makers/MakerDetail pages)
+  const [savedMakerIds, setSavedMakerIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(SAVED_MAKERS_KEY) ?? "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  function removeSavedMaker(id: string, name: string) {
+    setSavedMakerIds((prev) => {
+      const next = prev.filter((x) => x !== id);
+      localStorage.setItem(SAVED_MAKERS_KEY, JSON.stringify(next));
+      toast.success(`Removed ${name.split(" ")[0]} from favourites`);
+      return next;
+    });
+  }
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -787,32 +809,115 @@ export default function MyProfilePage() {
           </div>
         </motion.div>
 
-        {/* ── Favourite Makers Placeholder ── */}
+        {/* ── Favourite Makers ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="bg-white rounded-3xl border border-amber-100 shadow-warm-lg p-6"
+          data-ocid="profile.saved_makers.panel"
         >
-          <h2 className="font-display font-bold text-lg text-foreground mb-4">
-            ❤️ My Favourite Makers
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
-                key={i}
-                className="border-2 border-dashed border-amber-200 rounded-2xl p-4 text-center opacity-60"
-              >
-                <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-2">
-                  <User className="w-5 h-5 text-amber-400" />
-                </div>
-                <p className="text-xs font-body text-muted-foreground">
-                  Coming Soon
-                </p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center">
+                <Heart className="w-4 h-4 text-red-500 fill-red-500" />
               </div>
-            ))}
+              <h2 className="font-display font-bold text-lg text-foreground">
+                My Favourite Makers
+              </h2>
+            </div>
+            <Link
+              to="/makers"
+              className="text-saffron text-xs font-body font-semibold hover:text-terracotta"
+              data-ocid="profile.saved_makers.browse_link"
+            >
+              Browse all →
+            </Link>
           </div>
+
+          {savedMakerIds.length === 0 ? (
+            <div
+              className="text-center py-10"
+              data-ocid="profile.saved_makers.empty_state"
+            >
+              <Heart className="w-10 h-10 text-amber-200 mx-auto mb-3" />
+              <p className="font-body text-sm text-muted-foreground mb-1">
+                No favourites saved yet
+              </p>
+              <p className="text-xs font-body text-muted-foreground mb-4">
+                Tap the ❤️ on any maker's profile to save them here
+              </p>
+              <Link
+                to="/makers"
+                data-ocid="profile.saved_makers.explore_button"
+              >
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 bg-saffron hover:bg-terracotta text-cream text-xs font-semibold font-body px-4 py-2 rounded-xl transition-colors"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  Explore Makers
+                </button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {savedMakerIds.map((mid, idx) => {
+                const maker = (makersQuery.data ?? []).find(
+                  (m) => m.id.toString() === mid,
+                );
+                if (!maker) return null;
+                return (
+                  <div
+                    key={mid}
+                    className="relative group border border-amber-100 rounded-2xl p-3 text-center hover:border-saffron/30 transition-colors"
+                    data-ocid={`profile.saved_makers.item.${idx + 1}`}
+                  >
+                    {/* Remove button */}
+                    <button
+                      type="button"
+                      onClick={() => removeSavedMaker(mid, maker.name)}
+                      className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-red-50 border border-red-200 text-red-400 hover:text-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      data-ocid={`profile.saved_makers.remove_button.${idx + 1}`}
+                      title="Remove from favourites"
+                    >
+                      <Heart className="w-2.5 h-2.5 fill-current" />
+                    </button>
+                    <Link
+                      to="/maker/$id"
+                      params={{ id: mid }}
+                      data-ocid={`profile.saved_makers.link.${idx + 1}`}
+                    >
+                      <div className="w-14 h-14 rounded-full overflow-hidden mx-auto mb-2 border-2 border-saffron/20">
+                        <img
+                          src={getMakerImage(maker.name)}
+                          alt={maker.name}
+                          className="w-full h-full object-cover object-top"
+                        />
+                      </div>
+                      <p className="font-body font-semibold text-xs text-foreground line-clamp-1">
+                        {maker.name.split(" ")[0]}
+                      </p>
+                      <p className="text-muted-foreground font-body text-[10px] mt-0.5">
+                        {maker.state}
+                      </p>
+                    </Link>
+                  </div>
+                );
+              })}
+              {/* "Add more" slot */}
+              <Link to="/makers" data-ocid="profile.saved_makers.add_button">
+                <div className="border-2 border-dashed border-amber-200 rounded-2xl p-3 text-center opacity-60 hover:opacity-90 hover:border-saffron/40 transition-all h-full flex flex-col items-center justify-center min-h-[100px]">
+                  <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-2">
+                    <User className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <p className="text-xs font-body text-muted-foreground">
+                    Find more
+                  </p>
+                </div>
+              </Link>
+            </div>
+          )}
         </motion.div>
       </div>
 

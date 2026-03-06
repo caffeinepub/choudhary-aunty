@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -57,7 +59,9 @@ import {
 import { Link } from "@tanstack/react-router";
 import {
   BarChart2,
+  CheckCircle2,
   ChefHat,
+  ClipboardCheck,
   Database,
   Edit,
   Eye,
@@ -65,11 +69,15 @@ import {
   Loader2,
   Lock,
   Package,
+  PauseCircle,
+  PlayCircle,
   Plus,
   ShoppingCart,
   Star,
   Trash2,
+  TrendingUp,
   Users,
+  XCircle,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
@@ -894,13 +902,49 @@ function OrdersTab() {
     }
   }
 
-  const STATUS_COLORS: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    confirmed: "bg-blue-100 text-blue-800 border-blue-200",
-    preparing: "bg-orange-100 text-orange-800 border-orange-200",
-    dispatched: "bg-purple-100 text-purple-800 border-purple-200",
-    delivered: "bg-green-100 text-green-800 border-green-200",
+  // Map display labels for 7-stage lifecycle
+  const STATUS_DISPLAY: Record<string, { label: string; color: string }> = {
+    pending: {
+      label: "Order Created",
+      color: "bg-slate-100 text-slate-800 border-slate-200",
+    },
+    confirmed: {
+      label: "Payment Confirmed",
+      color: "bg-blue-100 text-blue-800 border-blue-200",
+    },
+    preparing: {
+      label: "Food Preparation",
+      color: "bg-orange-100 text-orange-800 border-orange-200",
+    },
+    dispatched: {
+      label: "Out for Delivery",
+      color: "bg-purple-100 text-purple-800 border-purple-200",
+    },
+    delivered: {
+      label: "Delivered",
+      color: "bg-green-100 text-green-800 border-green-200",
+    },
+    // Extended display stages (frontend-only labels)
+    chef_acceptance: {
+      label: "Chef Acceptance",
+      color: "bg-saffron/10 text-saffron border-saffron/30",
+    },
+    food_preparation: {
+      label: "Food Preparation",
+      color: "bg-orange-100 text-orange-800 border-orange-200",
+    },
+    ready_for_pickup: {
+      label: "Ready for Pickup",
+      color: "bg-amber-100 text-amber-800 border-amber-200",
+    },
+    out_for_delivery: {
+      label: "Out for Delivery",
+      color: "bg-purple-100 text-purple-800 border-purple-200",
+    },
   };
+  const STATUS_COLORS: Record<string, string> = Object.fromEntries(
+    Object.entries(STATUS_DISPLAY).map(([k, v]) => [k, v.color]),
+  );
 
   return (
     <div>
@@ -1238,6 +1282,879 @@ function TestimonialsTab() {
 }
 
 // ============================================
+// CHEF APPROVALS TAB
+// ============================================
+
+type ApprovalStatus = "pending" | "approved" | "rejected";
+
+interface ChefApplication {
+  id: number;
+  name: string;
+  city: string;
+  state: string;
+  specialty: string;
+  appliedOn: string;
+  status: ApprovalStatus;
+  phone: string;
+  email: string;
+  experience: string;
+  dishes: string;
+}
+
+const MOCK_CHEF_APPLICATIONS: ChefApplication[] = [
+  {
+    id: 1,
+    name: "Sunita Devi",
+    city: "Varanasi",
+    state: "UP",
+    specialty: "UP sweets & achar",
+    appliedOn: "2026-03-01",
+    status: "pending",
+    phone: "+91 97000 11111",
+    email: "sunita.varanasi@gmail.com",
+    experience: "28 years",
+    dishes: "Petha, Besan Ladoo, Nimbu Achar, Imli Chutney, Methi Mathri",
+  },
+  {
+    id: 2,
+    name: "Kamla Rani",
+    city: "Amritsar",
+    state: "Punjab",
+    specialty: "Punjabi pickles & pinni",
+    appliedOn: "2026-03-03",
+    status: "pending",
+    phone: "+91 98000 22222",
+    email: "kamla.amritsar@gmail.com",
+    experience: "32 years",
+    dishes: "Amritsari Mirch Achar, Pinni, Gajak, Punjabi Wadi, Aam Chunda",
+  },
+  {
+    id: 3,
+    name: "Meena Sharma",
+    city: "Jaipur",
+    state: "Rajasthan",
+    specialty: "Rajasthani sweets",
+    appliedOn: "2026-03-04",
+    status: "pending",
+    phone: "+91 96000 33333",
+    email: "meena.jaipur@gmail.com",
+    experience: "20 years",
+    dishes: "Ghevar, Churma, Rabri, Kaju Katli, Bajra Roti Masala",
+  },
+];
+
+const HYGIENE_CHECKLIST = [
+  "Clean and hygienic workspace with regular sanitization",
+  "Proper food storage in airtight, food-grade containers",
+  "Use of food-grade packaging materials only",
+  "Regular hand hygiene and use of gloves during prep",
+  "No signs of pests or rodents in kitchen area",
+];
+
+function ChefApprovalsTab() {
+  const [applications, setApplications] = useState<ChefApplication[]>(
+    MOCK_CHEF_APPLICATIONS,
+  );
+  const [rejectId, setRejectId] = useState<number | null>(null);
+  const [viewApp, setViewApp] = useState<ChefApplication | null>(null);
+  const [hygieneChecks, setHygieneChecks] = useState<boolean[]>(
+    Array(HYGIENE_CHECKLIST.length).fill(false),
+  );
+  const [hygieneScore, setHygieneScore] = useState("8");
+
+  function approve(id: number) {
+    setApplications((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status: "approved" } : a)),
+    );
+    toast.success("Chef application approved! Profile will be created.");
+  }
+
+  function rejectConfirmed() {
+    if (rejectId === null) return;
+    setApplications((prev) =>
+      prev.map((a) => (a.id === rejectId ? { ...a, status: "rejected" } : a)),
+    );
+    toast.error("Application rejected.");
+    setRejectId(null);
+  }
+
+  const pending = applications.filter((a) => a.status === "pending").length;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h3 className="font-display font-bold text-lg text-foreground">
+            Chef Applications
+          </h3>
+          <p className="text-muted-foreground font-body text-xs mt-0.5">
+            {pending} pending review
+          </p>
+        </div>
+        <Badge className="bg-amber-100 text-amber-800 border-amber-200 font-body text-xs">
+          {pending} Pending
+        </Badge>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <Table data-ocid="admin.chef_approvals.table">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="font-body text-xs">Name</TableHead>
+              <TableHead className="font-body text-xs">City / State</TableHead>
+              <TableHead className="font-body text-xs">Specialty</TableHead>
+              <TableHead className="font-body text-xs">Applied On</TableHead>
+              <TableHead className="font-body text-xs">Status</TableHead>
+              <TableHead className="font-body text-xs text-right">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {applications.map((app, idx) => (
+              <TableRow
+                key={app.id}
+                data-ocid={`admin.chef_approvals.row.${idx + 1}`}
+              >
+                <TableCell className="font-display font-semibold text-sm">
+                  {app.name}
+                </TableCell>
+                <TableCell className="font-body text-sm text-muted-foreground">
+                  {app.city}, {app.state}
+                </TableCell>
+                <TableCell className="font-body text-sm">
+                  {app.specialty}
+                </TableCell>
+                <TableCell className="font-body text-xs text-muted-foreground">
+                  {app.appliedOn}
+                </TableCell>
+                <TableCell>
+                  {app.status === "pending" && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold font-body bg-amber-100 text-amber-800 border border-amber-200">
+                      Pending
+                    </span>
+                  )}
+                  {app.status === "approved" && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold font-body bg-green-100 text-green-800 border border-green-200">
+                      Approved
+                    </span>
+                  )}
+                  {app.status === "rejected" && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold font-body bg-red-100 text-red-800 border border-red-200">
+                      Rejected
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center gap-2 justify-end flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setViewApp(app);
+                        setHygieneChecks(
+                          Array(HYGIENE_CHECKLIST.length).fill(false),
+                        );
+                      }}
+                      className="font-body text-xs"
+                      data-ocid={`admin.chef_approvals.view_button.${idx + 1}`}
+                    >
+                      View Details
+                    </Button>
+                    {app.status === "pending" && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => approve(app.id)}
+                          className="bg-green-600 hover:bg-green-700 text-white font-body text-xs"
+                          data-ocid={`admin.chef_approvals.approve_button.${idx + 1}`}
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                          Approve
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setRejectId(app.id)}
+                          className="font-body text-xs"
+                          data-ocid={`admin.chef_approvals.delete_button.${idx + 1}`}
+                        >
+                          <XCircle className="w-3.5 h-3.5 mr-1" />
+                          Reject
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* View Details Dialog */}
+      <Dialog open={viewApp !== null} onOpenChange={() => setViewApp(null)}>
+        <DialogContent
+          className="max-w-lg max-h-[80vh] overflow-y-auto"
+          data-ocid="admin.chef_approvals.dialog"
+        >
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              Application: {viewApp?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {viewApp && (
+            <div className="space-y-5 py-2">
+              <div className="grid grid-cols-2 gap-3 text-sm font-body">
+                <div>
+                  <span className="text-muted-foreground text-xs">City</span>
+                  <p className="font-semibold">{viewApp.city}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs">State</span>
+                  <p className="font-semibold">{viewApp.state}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs">Phone</span>
+                  <p className="font-semibold">{viewApp.phone}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs">Email</span>
+                  <p className="font-semibold">{viewApp.email}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs">
+                    Experience
+                  </span>
+                  <p className="font-semibold">{viewApp.experience}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs">
+                    Specialty
+                  </span>
+                  <p className="font-semibold">{viewApp.specialty}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs font-body mb-1">
+                  Signature Dishes
+                </p>
+                <p className="font-body text-sm text-foreground">
+                  {viewApp.dishes}
+                </p>
+              </div>
+
+              {/* Hygiene Checklist */}
+              <div className="border-t border-border pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <ClipboardCheck className="w-4 h-4 text-saffron" />
+                  <h4 className="font-display font-bold text-sm text-foreground">
+                    Kitchen Hygiene Checklist
+                  </h4>
+                </div>
+                <div className="space-y-3">
+                  {HYGIENE_CHECKLIST.map((item, i) => (
+                    <div key={item} className="flex items-start gap-3">
+                      <Checkbox
+                        id={`hygiene-${i}`}
+                        checked={hygieneChecks[i]}
+                        onCheckedChange={(checked) => {
+                          setHygieneChecks((prev) => {
+                            const next = [...prev];
+                            next[i] = checked === true;
+                            return next;
+                          });
+                        }}
+                        data-ocid={`admin.hygiene.checkbox.${i + 1}`}
+                      />
+                      <label
+                        htmlFor={`hygiene-${i}`}
+                        className="font-body text-xs text-foreground/80 leading-relaxed cursor-pointer"
+                      >
+                        {item}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center gap-3">
+                  <Label className="font-body text-xs">
+                    Hygiene Score (1–10):
+                  </Label>
+                  <Select value={hygieneScore} onValueChange={setHygieneScore}>
+                    <SelectTrigger
+                      className="w-20 font-body text-sm"
+                      data-ocid="admin.hygiene.select"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                        <SelectItem key={n} value={n.toString()}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-xs font-body text-muted-foreground">
+                    / 10
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setViewApp(null)}
+              data-ocid="admin.chef_approvals.close_button"
+            >
+              Close
+            </Button>
+            {viewApp?.status === "pending" && (
+              <Button
+                onClick={() => {
+                  if (viewApp) approve(viewApp.id);
+                  setViewApp(null);
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
+                data-ocid="admin.chef_approvals.confirm_button"
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Approve Chef
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Dialog */}
+      <AlertDialog
+        open={rejectId !== null}
+        onOpenChange={() => setRejectId(null)}
+      >
+        <AlertDialogContent data-ocid="admin.chef_approvals.dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">
+              Reject Application?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-body text-sm">
+              This will reject the chef's application. They will be notified via
+              WhatsApp.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-ocid="admin.chef_approvals.cancel_button">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={rejectConfirmed}
+              className="bg-destructive text-destructive-foreground"
+              data-ocid="admin.chef_approvals.confirm_button"
+            >
+              Reject
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+// ============================================
+// DISH APPROVALS TAB
+// ============================================
+
+interface DishSubmission {
+  id: number;
+  dishName: string;
+  makerName: string;
+  category: string;
+  price: number;
+  submittedOn: string;
+  status: ApprovalStatus;
+}
+
+const MOCK_DISH_SUBMISSIONS: DishSubmission[] = [
+  {
+    id: 1,
+    dishName: "Rajasthani Ghevar",
+    makerName: "Sunita Devi",
+    category: "sweets",
+    price: 280,
+    submittedOn: "2026-03-05",
+    status: "pending",
+  },
+  {
+    id: 2,
+    dishName: "Amritsari Mirch Achar",
+    makerName: "Preetkaur Aunty",
+    category: "achar",
+    price: 190,
+    submittedOn: "2026-03-04",
+    status: "pending",
+  },
+  {
+    id: 3,
+    dishName: "UP Special Gajar Halwa",
+    makerName: "Sarla Maasi",
+    category: "sweets",
+    price: 320,
+    submittedOn: "2026-03-03",
+    status: "pending",
+  },
+];
+
+function DishApprovalsTab() {
+  const [dishes, setDishes] = useState<DishSubmission[]>(MOCK_DISH_SUBMISSIONS);
+  const [rejectId, setRejectId] = useState<number | null>(null);
+
+  function approveDish(id: number) {
+    setDishes((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, status: "approved" } : d)),
+    );
+    toast.success("Dish approved and listed on the platform!");
+  }
+
+  function rejectConfirmed() {
+    if (rejectId === null) return;
+    setDishes((prev) =>
+      prev.map((d) => (d.id === rejectId ? { ...d, status: "rejected" } : d)),
+    );
+    toast.error("Dish rejected. Maker will be notified.");
+    setRejectId(null);
+  }
+
+  const pending = dishes.filter((d) => d.status === "pending").length;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h3 className="font-display font-bold text-lg text-foreground">
+            Dish Approval Queue
+          </h3>
+          <p className="text-muted-foreground font-body text-xs mt-0.5">
+            {pending} dishes waiting for review
+          </p>
+        </div>
+        <Badge className="bg-orange-100 text-orange-800 border-orange-200 font-body text-xs">
+          {pending} Pending
+        </Badge>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <Table data-ocid="admin.dish_approvals.table">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="font-body text-xs">Dish Name</TableHead>
+              <TableHead className="font-body text-xs">Maker</TableHead>
+              <TableHead className="font-body text-xs">Category</TableHead>
+              <TableHead className="font-body text-xs">Price</TableHead>
+              <TableHead className="font-body text-xs">Submitted</TableHead>
+              <TableHead className="font-body text-xs">Status</TableHead>
+              <TableHead className="font-body text-xs text-right">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {dishes.map((dish, idx) => (
+              <TableRow
+                key={dish.id}
+                data-ocid={`admin.dish_approvals.row.${idx + 1}`}
+              >
+                <TableCell className="font-display font-semibold text-sm">
+                  {dish.dishName}
+                </TableCell>
+                <TableCell className="font-body text-sm text-muted-foreground">
+                  {dish.makerName}
+                </TableCell>
+                <TableCell>
+                  <span className="capitalize text-xs font-body px-2 py-0.5 bg-muted rounded-full border border-border">
+                    {dish.category}
+                  </span>
+                </TableCell>
+                <TableCell className="font-body text-sm text-saffron font-bold">
+                  ₹{dish.price}
+                </TableCell>
+                <TableCell className="font-body text-xs text-muted-foreground">
+                  {dish.submittedOn}
+                </TableCell>
+                <TableCell>
+                  {dish.status === "pending" && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold font-body bg-amber-100 text-amber-800 border border-amber-200">
+                      Pending
+                    </span>
+                  )}
+                  {dish.status === "approved" && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold font-body bg-green-100 text-green-800 border border-green-200">
+                      Live
+                    </span>
+                  )}
+                  {dish.status === "rejected" && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold font-body bg-red-100 text-red-800 border border-red-200">
+                      Rejected
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  {dish.status === "pending" && (
+                    <div className="flex items-center gap-2 justify-end">
+                      <Button
+                        size="sm"
+                        onClick={() => approveDish(dish.id)}
+                        className="bg-green-600 hover:bg-green-700 text-white font-body text-xs"
+                        data-ocid={`admin.dish_approvals.approve_button.${idx + 1}`}
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                        Approve
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setRejectId(dish.id)}
+                        className="font-body text-xs"
+                        data-ocid={`admin.dish_approvals.delete_button.${idx + 1}`}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Reject Confirmation */}
+      <AlertDialog
+        open={rejectId !== null}
+        onOpenChange={() => setRejectId(null)}
+      >
+        <AlertDialogContent data-ocid="admin.dish_approvals.dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">
+              Reject Dish?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-body text-sm">
+              This dish submission will be rejected and the maker will be
+              notified.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-ocid="admin.dish_approvals.cancel_button">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={rejectConfirmed}
+              className="bg-destructive text-destructive-foreground"
+              data-ocid="admin.dish_approvals.confirm_button"
+            >
+              Reject Dish
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+// ============================================
+// CHEF PERFORMANCE TAB
+// ============================================
+
+interface MakerPerformance {
+  name: string;
+  state: string;
+  ordersCompleted: number;
+  rating: number;
+  revenue: number;
+  responseRate: number;
+  status: "Active" | "Suspended";
+}
+
+const MAKER_PERFORMANCE_DATA: MakerPerformance[] = [
+  {
+    name: "Anju Choudhary",
+    state: "Bihar",
+    ordersCompleted: 47,
+    rating: 4.8,
+    revenue: 18200,
+    responseRate: 95,
+    status: "Active",
+  },
+  {
+    name: "Babita Tai",
+    state: "Haryana",
+    ordersCompleted: 31,
+    rating: 4.6,
+    revenue: 12400,
+    responseRate: 88,
+    status: "Active",
+  },
+  {
+    name: "Sarla Maasi",
+    state: "UP",
+    ordersCompleted: 28,
+    rating: 4.7,
+    revenue: 11100,
+    responseRate: 92,
+    status: "Active",
+  },
+  {
+    name: "Preetkaur Aunty",
+    state: "Punjab",
+    ordersCompleted: 22,
+    rating: 4.9,
+    revenue: 9800,
+    responseRate: 97,
+    status: "Active",
+  },
+  {
+    name: "Geeta Devi",
+    state: "Uttarakhand",
+    ordersCompleted: 15,
+    rating: 4.5,
+    revenue: 5600,
+    responseRate: 80,
+    status: "Active",
+  },
+];
+
+function ChefPerformanceTab() {
+  const [performers, setPerformers] = useState<MakerPerformance[]>(
+    MAKER_PERFORMANCE_DATA,
+  );
+  const [suspendName, setSuspendName] = useState<string | null>(null);
+
+  function toggleStatus(name: string) {
+    const current = performers.find((p) => p.name === name);
+    if (!current) return;
+    if (current.status === "Active") {
+      setSuspendName(name);
+    } else {
+      setPerformers((prev) =>
+        prev.map((p) => (p.name === name ? { ...p, status: "Active" } : p)),
+      );
+      toast.success(`${name} reinstated successfully.`);
+    }
+  }
+
+  function confirmSuspend() {
+    if (!suspendName) return;
+    setPerformers((prev) =>
+      prev.map((p) =>
+        p.name === suspendName ? { ...p, status: "Suspended" } : p,
+      ),
+    );
+    toast.error(`${suspendName} has been suspended.`);
+    setSuspendName(null);
+  }
+
+  const totalRevenue = performers.reduce((s, p) => s + p.revenue, 0);
+  const avgRating = (
+    performers.reduce((s, p) => s + p.rating, 0) / performers.length
+  ).toFixed(1);
+  const activeCount = performers.filter((p) => p.status === "Active").length;
+
+  return (
+    <div>
+      <h3 className="font-display font-bold text-lg text-foreground mb-5">
+        Chef Performance
+      </h3>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {[
+          {
+            label: "Total Makers",
+            value: performers.length.toString(),
+            icon: Users,
+            color: "text-saffron",
+            bg: "bg-saffron/10",
+          },
+          {
+            label: "Active",
+            value: activeCount.toString(),
+            icon: PlayCircle,
+            color: "text-green-600",
+            bg: "bg-green-50",
+          },
+          {
+            label: "Avg Rating",
+            value: `${avgRating}★`,
+            icon: Star,
+            color: "text-amber-500",
+            bg: "bg-amber-50",
+          },
+          {
+            label: "Total Revenue",
+            value: `₹${totalRevenue.toLocaleString("en-IN")}`,
+            icon: TrendingUp,
+            color: "text-blue-600",
+            bg: "bg-blue-50",
+          },
+        ].map((kpi, idx) => (
+          <Card
+            key={kpi.label}
+            className="border-border shadow-xs"
+            data-ocid={`admin.chef_performance.card.${idx + 1}`}
+          >
+            <CardContent className="py-4 px-4">
+              <div
+                className={`w-8 h-8 rounded-lg ${kpi.bg} flex items-center justify-center mb-2`}
+              >
+                <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
+              </div>
+              <div className={`font-display text-xl font-bold ${kpi.color}`}>
+                {kpi.value}
+              </div>
+              <div className="text-muted-foreground font-body text-xs">
+                {kpi.label}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <Table data-ocid="admin.chef_performance.table">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="font-body text-xs">Maker</TableHead>
+              <TableHead className="font-body text-xs">State</TableHead>
+              <TableHead className="font-body text-xs">Orders</TableHead>
+              <TableHead className="font-body text-xs">Rating</TableHead>
+              <TableHead className="font-body text-xs">Revenue</TableHead>
+              <TableHead className="font-body text-xs">Response Rate</TableHead>
+              <TableHead className="font-body text-xs">Status</TableHead>
+              <TableHead className="font-body text-xs text-right">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {performers.map((perf, idx) => (
+              <TableRow
+                key={perf.name}
+                data-ocid={`admin.chef_performance.row.${idx + 1}`}
+              >
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={getMakerImage(perf.name)}
+                      alt={perf.name}
+                      className="w-8 h-8 rounded-full object-cover border border-border"
+                    />
+                    <span className="font-display font-semibold text-sm">
+                      {perf.name}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="state-badge text-xs">{perf.state}</span>
+                </TableCell>
+                <TableCell className="font-body text-sm font-semibold">
+                  {perf.ordersCompleted}
+                </TableCell>
+                <TableCell>
+                  <span className="font-body text-sm font-bold text-amber-600">
+                    {perf.rating}★
+                  </span>
+                </TableCell>
+                <TableCell className="font-body text-sm text-saffron font-bold">
+                  ₹{perf.revenue.toLocaleString("en-IN")}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 h-1.5 rounded-full bg-border overflow-hidden">
+                      <div
+                        className="h-full bg-green-500 rounded-full"
+                        style={{ width: `${perf.responseRate}%` }}
+                      />
+                    </div>
+                    <span className="font-body text-xs text-muted-foreground">
+                      {perf.responseRate}%
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-semibold font-body border ${
+                      perf.status === "Active"
+                        ? "bg-green-100 text-green-800 border-green-200"
+                        : "bg-red-100 text-red-800 border-red-200"
+                    }`}
+                  >
+                    {perf.status}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleStatus(perf.name)}
+                    className={`font-body text-xs ${
+                      perf.status === "Active"
+                        ? "hover:border-red-300 hover:text-red-600"
+                        : "hover:border-green-300 hover:text-green-600"
+                    }`}
+                    data-ocid={`admin.chef_performance.toggle.${idx + 1}`}
+                  >
+                    {perf.status === "Active" ? (
+                      <>
+                        <PauseCircle className="w-3.5 h-3.5 mr-1" />
+                        Suspend
+                      </>
+                    ) : (
+                      <>
+                        <PlayCircle className="w-3.5 h-3.5 mr-1" />
+                        Reinstate
+                      </>
+                    )}
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Suspend Confirm */}
+      <AlertDialog
+        open={suspendName !== null}
+        onOpenChange={() => setSuspendName(null)}
+      >
+        <AlertDialogContent data-ocid="admin.chef_performance.dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">
+              Suspend {suspendName}?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-body text-sm">
+              This maker will be suspended and unable to receive new orders.
+              Existing orders will be unaffected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-ocid="admin.chef_performance.cancel_button">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmSuspend}
+              className="bg-destructive text-destructive-foreground"
+              data-ocid="admin.chef_performance.confirm_button"
+            >
+              Suspend
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+// ============================================
 // MAIN ADMIN PAGE
 // ============================================
 
@@ -1478,6 +2395,27 @@ export default function AdminPage() {
               <ShoppingCart className="w-3.5 h-3.5" /> Orders
             </TabsTrigger>
             <TabsTrigger
+              value="chef-approvals"
+              data-ocid="admin.chef_approvals_tab"
+              className="font-body text-xs sm:text-sm flex items-center gap-1.5 data-[state=active]:bg-card data-[state=active]:text-saffron"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" /> Chef Approvals
+            </TabsTrigger>
+            <TabsTrigger
+              value="dish-approvals"
+              data-ocid="admin.dish_approvals_tab"
+              className="font-body text-xs sm:text-sm flex items-center gap-1.5 data-[state=active]:bg-card data-[state=active]:text-saffron"
+            >
+              <ClipboardCheck className="w-3.5 h-3.5" /> Dish Approvals
+            </TabsTrigger>
+            <TabsTrigger
+              value="chef-performance"
+              data-ocid="admin.chef_performance_tab"
+              className="font-body text-xs sm:text-sm flex items-center gap-1.5 data-[state=active]:bg-card data-[state=active]:text-saffron"
+            >
+              <TrendingUp className="w-3.5 h-3.5" /> Chef Performance
+            </TabsTrigger>
+            <TabsTrigger
               value="testimonials"
               data-ocid="admin.testimonials_tab"
               className="font-body text-xs sm:text-sm flex items-center gap-1.5 data-[state=active]:bg-card data-[state=active]:text-saffron"
@@ -1494,6 +2432,15 @@ export default function AdminPage() {
           </TabsContent>
           <TabsContent value="orders">
             <OrdersTab />
+          </TabsContent>
+          <TabsContent value="chef-approvals">
+            <ChefApprovalsTab />
+          </TabsContent>
+          <TabsContent value="dish-approvals">
+            <DishApprovalsTab />
+          </TabsContent>
+          <TabsContent value="chef-performance">
+            <ChefPerformanceTab />
           </TabsContent>
           <TabsContent value="testimonials">
             <TestimonialsTab />
