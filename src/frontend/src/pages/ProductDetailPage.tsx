@@ -1,12 +1,21 @@
+import { AvailabilityBadge } from "@/components/AvailabilityBadge";
+import {
+  type CustomizationState,
+  CustomizationWidget,
+} from "@/components/CustomizationWidget";
+import ReviewsSection from "@/components/ReviewsSection";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   PRODUCT_GALLERY_IMAGES,
   WHATSAPP_NUMBER,
-  getMakerImage,
   getProductImage,
 } from "@/constants/images";
+import type { LocalProduct } from "@/constants/localData";
+import type { AvailabilityType } from "@/constants/seedData";
+import { useAuth } from "@/context/AuthContext";
+import { useActor } from "@/hooks/useActor";
 import { useGetAllProducts, useGetProductById } from "@/hooks/useQueries";
 import { Link, useParams } from "@tanstack/react-router";
 import {
@@ -24,6 +33,7 @@ import {
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { SiWhatsapp } from "react-icons/si";
+import { toast } from "sonner";
 
 const GALLERY_TABS = [
   { id: "hero", label: "Product" },
@@ -39,6 +49,16 @@ export default function ProductDetailPage() {
   const { id } = useParams({ from: "/product/$id" });
   const productId = BigInt(id);
   const [activeTab, setActiveTab] = useState<GalleryTab>("hero");
+  const { customerAccount, isLoggedIn } = useAuth();
+  const { actor } = useActor();
+
+  const [customization, setCustomization] = useState<CustomizationState>({
+    spiceLevel: "Medium Spice",
+    oilLevel: "Medium Oil",
+    saltLevel: "Medium Salt",
+    sweetnessLevel: "Medium Sweet",
+    portionSize: "Medium (500g)",
+  });
 
   const productQuery = useGetProductById(productId);
   const allProductsQuery = useGetAllProducts();
@@ -58,9 +78,52 @@ export default function ProductDetailPage() {
     }
   }, [product]);
 
+  // Pre-fill from taste profile when logged in
+  useEffect(() => {
+    if (!isLoggedIn || !customerAccount) return;
+    setCustomization((prev) => ({
+      ...prev,
+      spiceLevel: customerAccount.spicePreference || prev.spiceLevel,
+      oilLevel: customerAccount.oilPreference || prev.oilLevel,
+      sweetnessLevel:
+        customerAccount.sweetnessPreference || prev.sweetnessLevel,
+    }));
+  }, [isLoggedIn, customerAccount]);
+
+  async function handleOrderClick() {
+    // Record preference in backend (async, non-blocking)
+    if (actor && product) {
+      try {
+        await actor.createOrderItem(
+          BigInt(0), // placeholder order ID
+          product.id,
+          1,
+          customization.spiceLevel,
+          customization.oilLevel,
+          customization.saltLevel,
+          customization.sweetnessLevel,
+          customization.portionSize,
+        );
+        if (isLoggedIn) {
+          toast.success("Your taste profile has been updated! 🌶️", {
+            description: `${customization.spiceLevel}, ${customization.oilLevel} recorded.`,
+          });
+        }
+      } catch {
+        // silently ignore — WhatsApp order still goes through
+      }
+    }
+  }
+
   const buildWhatsAppMessage = () => {
     if (!product) return "";
-    return `Hi! I'd like to order *${product.name}* from Choudhary Aunty.\n\nProduct: ${product.name}\nState: ${product.state}\nPrice: ₹${product.sellingPrice}\nMin Batch: ${product.minBatchKg} kg\n\nPlease guide me on the next steps. 🙏`;
+    const isSweetCategory = ["sweets", "ladoo", "barfi", "halwa"].includes(
+      product.category.toLowerCase(),
+    );
+    const sweetnessLine = isSweetCategory
+      ? `• Sweetness: ${customization.sweetnessLevel}\n`
+      : "";
+    return `Hi! I'd like to order *${product.name}* from Choudhary Aunty.\n\nProduct: ${product.name}\nState: ${product.state}\nPrice: ₹${product.sellingPrice}\nMin Batch: ${product.minBatchKg} kg\n\n🎨 My Customization:\n• Spice: ${customization.spiceLevel}\n• Oil: ${customization.oilLevel}\n• Salt: ${customization.saltLevel}\n${sweetnessLine}• Portion: ${customization.portionSize}\n\nPlease guide me on the next steps. 🙏`;
   };
 
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage())}`;
@@ -306,6 +369,13 @@ export default function ProductDetailPage() {
                   <AlertCircle className="w-3 h-3" /> Unavailable
                 </span>
               )}
+              {(product as LocalProduct).availability && (
+                <AvailabilityBadge
+                  availability={
+                    (product as LocalProduct).availability as AvailabilityType
+                  }
+                />
+              )}
             </div>
 
             {/* Name */}
@@ -362,6 +432,12 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
+            {/* Customization Widget */}
+            <CustomizationWidget
+              category={product.category}
+              onChange={setCustomization}
+            />
+
             {/* WhatsApp Order Button */}
             {product.isAvailable ? (
               <a
@@ -369,6 +445,7 @@ export default function ProductDetailPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 data-ocid="product.whatsapp_button"
+                onClick={() => handleOrderClick()}
                 className="flex items-center justify-center gap-2 whatsapp-btn px-6 py-4 text-base font-semibold w-full sm:w-auto"
               >
                 <SiWhatsapp className="w-5 h-5" />
@@ -615,12 +692,18 @@ export default function ProductDetailPage() {
                 <Users className="w-6 h-6 text-saffron" />
                 Meet the Aunty
               </h2>
-              <p className="text-muted-foreground font-body text-xs mb-4">
-                From{" "}
-                <span className="font-semibold text-foreground">
-                  {product.state}
+              <div className="flex items-center gap-2 mb-4">
+                <p className="text-muted-foreground font-body text-xs">
+                  From{" "}
+                  <span className="font-semibold text-foreground">
+                    {product.state}
+                  </span>
+                </p>
+                <span className="inline-flex items-center gap-1 bg-green-50 border border-green-200 text-green-700 text-xs px-2 py-0.5 rounded-full font-body font-semibold">
+                  <ShieldCheck className="w-3 h-3" />
+                  Verified Kitchen ✓
                 </span>
-              </p>
+              </div>
               <p className="text-muted-foreground font-body text-sm leading-relaxed mb-5">
                 {product.usp ||
                   "Behind every jar is a woman with decades of kitchen wisdom. She selected these spices herself at the local bazaar. She tested this recipe on her own family first. And she puts her name — and her dignity — behind every product she ships."}
@@ -652,6 +735,9 @@ export default function ProductDetailPage() {
             </div>
           </motion.div>
         </div>
+
+        {/* Reviews Section */}
+        <ReviewsSection productName={product.name} />
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
@@ -731,6 +817,7 @@ export default function ProductDetailPage() {
             target="_blank"
             rel="noopener noreferrer"
             data-ocid="product.order_button"
+            onClick={() => handleOrderClick()}
             className="flex items-center justify-center gap-2 whatsapp-btn px-6 py-4 text-base font-semibold w-full"
           >
             <SiWhatsapp className="w-5 h-5" />

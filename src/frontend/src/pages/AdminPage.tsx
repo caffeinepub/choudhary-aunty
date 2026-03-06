@@ -54,7 +54,9 @@ import {
   useUpdateOrderStatus,
   useUpdateProduct,
 } from "@/hooks/useQueries";
+import { Link } from "@tanstack/react-router";
 import {
+  BarChart2,
   ChefHat,
   Database,
   Edit,
@@ -67,6 +69,7 @@ import {
   ShoppingCart,
   Star,
   Trash2,
+  Users,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
@@ -1414,6 +1417,42 @@ export default function AdminPage() {
         </div>
 
         <SeedDataPanel />
+
+        {/* Quick Dashboard Links */}
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <Link to="/maker-dashboard" data-ocid="admin.maker_dashboard.link">
+            <Button
+              variant="outline"
+              size="sm"
+              className="font-body text-xs gap-1.5 hover:border-saffron/50 hover:text-saffron transition-colors"
+            >
+              <Users className="w-3.5 h-3.5" />
+              Maker Dashboard →
+            </Button>
+          </Link>
+          <Link
+            to="/platform-dashboard"
+            data-ocid="admin.platform_dashboard.link"
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              className="font-body text-xs gap-1.5 hover:border-saffron/50 hover:text-saffron transition-colors"
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              Platform Dashboard →
+            </Button>
+          </Link>
+          <Link to="/customer-profile" data-ocid="admin.loyalty.link">
+            <Button
+              variant="outline"
+              size="sm"
+              className="font-body text-xs gap-1.5 hover:border-saffron/50 hover:text-saffron transition-colors"
+            >
+              🏅 Rishta Rewards →
+            </Button>
+          </Link>
+        </div>
 
         <Tabs defaultValue="makers">
           <TabsList className="mb-6 bg-muted/50 p-1 h-auto gap-1 flex-wrap">

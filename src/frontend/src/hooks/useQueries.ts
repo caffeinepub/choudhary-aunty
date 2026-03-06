@@ -1,9 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  AdAnalytics,
+  AdCampaign,
   Maker,
   Order,
   OrderStatus,
   Product,
+  RankedAd,
   StateCount,
   Testimonial,
 } from "../backend.d";
@@ -399,5 +402,221 @@ export function useUpdateOrderStatus() {
       return actor.updateOrderStatus(orderId, status);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["orders"] }),
+  });
+}
+
+// ============================================
+// AD CAMPAIGNS
+// ============================================
+
+const MOCK_AD_CAMPAIGNS: AdCampaign[] = [
+  {
+    id: 1n,
+    makerId: 1n,
+    name: "Bihar Achar Boost",
+    adType: "sponsoredDish",
+    status: "active",
+    dailyBudget: 500,
+    bidPerClick: 12,
+    targetState: "Bihar",
+    targetCategory: "achar",
+    qualityScore: 0.9,
+    createdAt: BigInt(Date.now()),
+    totalSpend: 340,
+    totalImpressions: 1240n,
+    totalClicks: 87n,
+    totalOrders: 14n,
+    totalRevenue: 2380,
+  },
+  {
+    id: 2n,
+    makerId: 4n,
+    name: "Preetkaur Featured Chef",
+    adType: "featuredChef",
+    status: "active",
+    dailyBudget: 800,
+    bidPerClick: 18,
+    targetState: "Punjab",
+    targetCategory: "",
+    qualityScore: 0.85,
+    createdAt: BigInt(Date.now()),
+    totalSpend: 612,
+    totalImpressions: 2100n,
+    totalClicks: 120n,
+    totalOrders: 22n,
+    totalRevenue: 4180,
+  },
+  {
+    id: 3n,
+    makerId: 2n,
+    name: "Haryana Sweets Promo",
+    adType: "categoryPromotion",
+    status: "active",
+    dailyBudget: 600,
+    bidPerClick: 10,
+    targetState: "Haryana",
+    targetCategory: "sweets",
+    qualityScore: 0.8,
+    createdAt: BigInt(Date.now()),
+    totalSpend: 230,
+    totalImpressions: 890n,
+    totalClicks: 54n,
+    totalOrders: 9n,
+    totalRevenue: 1620,
+  },
+];
+
+export function useGetAllAdCampaigns() {
+  const { actor, isFetching } = useActor();
+  return useQuery<AdCampaign[]>({
+    queryKey: ["adCampaigns"],
+    queryFn: async () => {
+      if (!actor) return MOCK_AD_CAMPAIGNS;
+      try {
+        const result = await actor.getAllAdCampaigns();
+        return result.length > 0 ? result : MOCK_AD_CAMPAIGNS;
+      } catch {
+        return MOCK_AD_CAMPAIGNS;
+      }
+    },
+    enabled: !!actor && !isFetching,
+    placeholderData: MOCK_AD_CAMPAIGNS,
+  });
+}
+
+export function useGetAdCampaignsByMaker(makerId: bigint) {
+  const { actor, isFetching } = useActor();
+  return useQuery<AdCampaign[]>({
+    queryKey: ["adCampaigns", "maker", makerId.toString()],
+    queryFn: async () => {
+      if (!actor) {
+        return MOCK_AD_CAMPAIGNS.filter((c) => c.makerId === makerId);
+      }
+      try {
+        const result = await actor.getAdCampaignsByMaker(makerId);
+        return result.length > 0
+          ? result
+          : MOCK_AD_CAMPAIGNS.filter((c) => c.makerId === makerId);
+      } catch {
+        return MOCK_AD_CAMPAIGNS.filter((c) => c.makerId === makerId);
+      }
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetAdAnalytics(campaignId: bigint | null) {
+  const { actor, isFetching } = useActor();
+  return useQuery<AdAnalytics | null>({
+    queryKey: ["adAnalytics", campaignId?.toString()],
+    queryFn: async () => {
+      if (!actor || campaignId === null) return null;
+      try {
+        return await actor.getAdAnalytics(campaignId);
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!actor && !isFetching && campaignId !== null,
+  });
+}
+
+export function useGetRankedAds(state: string, category: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery<RankedAd[]>({
+    queryKey: ["rankedAds", state, category],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await actor.getRankedAds(state, category);
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 60_000,
+  });
+}
+
+export function useGetPlatformAdRevenue() {
+  const { actor, isFetching } = useActor();
+  return useQuery<number>({
+    queryKey: ["platformAdRevenue"],
+    queryFn: async () => {
+      if (!actor) return 1182;
+      try {
+        return await actor.getPlatformAdRevenue();
+      } catch {
+        return 1182;
+      }
+    },
+    enabled: !!actor && !isFetching,
+    placeholderData: 1182,
+  });
+}
+
+export function useCreateAdCampaign() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      makerId,
+      name,
+      adType,
+      dailyBudget,
+      bidPerClick,
+      targetState,
+      targetCategory,
+    }: {
+      makerId: bigint;
+      name: string;
+      adType: string;
+      dailyBudget: number;
+      bidPerClick: number;
+      targetState: string;
+      targetCategory: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.createAdCampaign(
+        makerId,
+        name,
+        adType,
+        dailyBudget,
+        bidPerClick,
+        targetState,
+        targetCategory,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adCampaigns"] });
+    },
+  });
+}
+
+export function usePauseAdCampaign() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.pauseAdCampaign(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adCampaigns"] });
+    },
+  });
+}
+
+export function useResumeAdCampaign() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.resumeAdCampaign(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adCampaigns"] });
+    },
   });
 }

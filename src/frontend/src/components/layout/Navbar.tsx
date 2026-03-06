@@ -2,20 +2,34 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LOGO_IMAGE, WHATSAPP_NUMBER } from "@/constants/images";
+import { useAuth } from "@/context/AuthContext";
 import {
   LANGUAGE_NAMES,
   type LanguageCode,
   useLanguage,
 } from "@/hooks/useLanguage";
 import { cn } from "@/lib/utils";
-import { Link, useLocation } from "@tanstack/react-router";
-import { ChevronDown, Globe, Menu, MessageCircle, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  ChevronDown,
+  Globe,
+  LogOut,
+  Menu,
+  MessageCircle,
+  ShoppingBag,
+  Star,
+  TrendingUp,
+  User,
+  X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { SiFacebook, SiInstagram, SiWhatsapp, SiX } from "react-icons/si";
+import { toast } from "sonner";
 
 const NAV_LINK_KEYS = [
   { key: "nav.home", href: "/", ocid: "nav.home_link" },
@@ -44,13 +58,40 @@ const MORE_LINKS = [
   { label: "📖 Blog", href: "/blog", ocid: "nav.blog_link" },
   { label: "📰 Press & Media", href: "/press", ocid: "nav.press_link" },
   { label: "📦 Track Order", href: "/order-tracker", ocid: "nav.tracker_link" },
+  {
+    label: "👤 My Profile",
+    href: "/my-profile",
+    ocid: "nav.my_profile_link",
+  },
+  {
+    label: "📢 Advertise",
+    href: "/ads",
+    ocid: "nav.ads_link",
+  },
+  {
+    label: "📊 CRM Portal",
+    href: "/crm",
+    ocid: "nav.crm_more_link",
+  },
+  {
+    label: "📊 Maker Dashboard",
+    href: "/maker-dashboard",
+    ocid: "nav.maker_dashboard_link",
+  },
+  {
+    label: "🖥️ Platform Dashboard",
+    href: "/platform-dashboard",
+    ocid: "nav.platform_dashboard_link",
+  },
 ];
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
+  const { customerAccount, isLoggedIn, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -181,6 +222,96 @@ export default function Navbar() {
           </DropdownMenu>
         </div>
 
+        {/* My Account button — Desktop */}
+        {isLoggedIn && customerAccount ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              data-ocid="nav.account_dropdown"
+              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl border border-saffron/30 bg-saffron/5 hover:bg-saffron/10 transition-colors text-foreground/80 hover:text-foreground"
+              aria-label="My Account"
+            >
+              <div className="w-7 h-7 rounded-full bg-saffron/20 flex items-center justify-center shrink-0">
+                <span className="font-display font-bold text-xs text-saffron">
+                  {customerAccount.name[0]}
+                </span>
+              </div>
+              <span className="text-sm font-body font-medium max-w-[100px] truncate">
+                {customerAccount.name.split(" ")[0]}
+              </span>
+              {/* Asharfi badge */}
+              <span className="text-[10px] bg-amber-100 text-amber-700 border border-amber-200 rounded-full px-1.5 py-0.5 font-body font-bold">
+                🪙{" "}
+                {Number(customerAccount.asharfiPoints).toLocaleString("en-IN")}
+              </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link
+                  to="/my-profile"
+                  data-ocid="nav.my_profile_link"
+                  className="font-body text-sm cursor-pointer flex items-center gap-2"
+                >
+                  <User className="w-4 h-4" />
+                  My Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  to="/my-profile"
+                  data-ocid="nav.my_orders_link"
+                  className="font-body text-sm cursor-pointer flex items-center gap-2"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  My Orders
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  to="/my-profile"
+                  data-ocid="nav.loyalty_link"
+                  className="font-body text-sm cursor-pointer flex items-center gap-2"
+                >
+                  <Star className="w-4 h-4" />
+                  Loyalty (Asharfi)
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link
+                  to="/crm"
+                  data-ocid="nav.crm_link"
+                  className="font-body text-sm cursor-pointer flex items-center gap-2"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  CRM Portal
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                data-ocid="nav.logout_button"
+                onClick={() => {
+                  logout();
+                  navigate({ to: "/" });
+                  toast.success("Logged out. Aate rehna! 👋");
+                }}
+                className="font-body text-sm cursor-pointer text-red-600 flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Link
+            to="/login"
+            data-ocid="nav.login_link"
+            className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl border border-saffron/30 text-saffron hover:bg-saffron/5 transition-colors text-sm font-body font-semibold"
+          >
+            <User className="w-4 h-4" />
+            Login
+          </Link>
+        )}
+
         {/* WhatsApp CTA */}
         <a
           href={whatsappUrl}
@@ -236,6 +367,70 @@ export default function Navbar() {
                   {t(link.key)}
                 </Link>
               ))}
+              {/* Account section in mobile */}
+              <div className="border-t border-border mt-1 pt-1">
+                {isLoggedIn && customerAccount ? (
+                  <>
+                    <div className="px-4 py-2 flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-saffron/20 flex items-center justify-center">
+                        <span className="font-display font-bold text-xs text-saffron">
+                          {customerAccount.name[0]}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-body text-sm font-semibold text-foreground truncate">
+                          {customerAccount.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground font-body">
+                          🪙{" "}
+                          {Number(customerAccount.asharfiPoints).toLocaleString(
+                            "en-IN",
+                          )}{" "}
+                          Asharfi
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      to="/my-profile"
+                      data-ocid="nav.my_profile_mobile_link"
+                      className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium font-body text-foreground/70 hover:text-saffron hover:bg-saffron/5 transition-colors"
+                    >
+                      <User className="w-4 h-4" />
+                      My Profile
+                    </Link>
+                    <Link
+                      to="/crm"
+                      data-ocid="nav.crm_mobile_link"
+                      className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium font-body text-foreground/70 hover:text-saffron hover:bg-saffron/5 transition-colors"
+                    >
+                      <TrendingUp className="w-4 h-4" />
+                      CRM Portal
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        logout();
+                        navigate({ to: "/" });
+                        toast.success("Logged out!");
+                      }}
+                      data-ocid="nav.logout_mobile_button"
+                      className="flex items-center gap-2 w-full px-4 py-2 rounded-md text-sm font-medium font-body text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/login"
+                    data-ocid="nav.login_mobile_link"
+                    className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium font-body text-saffron hover:bg-saffron/5 transition-colors font-semibold"
+                  >
+                    <User className="w-4 h-4" />
+                    Login / Sign Up
+                  </Link>
+                )}
+              </div>
               {/* More links flat in mobile */}
               <div className="border-t border-border mt-1 pt-1">
                 {MORE_LINKS.map((link) => (

@@ -1,12 +1,27 @@
+import type { RankedAd } from "@/backend.d";
+import { AvailabilityBadge } from "@/components/AvailabilityBadge";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { STATES, STATE_BANNERS, getProductImage } from "@/constants/images";
 import type { LocalProduct } from "@/constants/localData";
-import type { Season } from "@/constants/seedData";
-import { useGetAllProducts, useGetProductsByState } from "@/hooks/useQueries";
+import type { AvailabilityType, Season } from "@/constants/seedData";
+import { useActor } from "@/hooks/useActor";
+import {
+  useGetAllProducts,
+  useGetProductsByState,
+  useGetRankedAds,
+} from "@/hooks/useQueries";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { ArrowRight, Filter, MapPin, Search, Star } from "lucide-react";
+import {
+  ArrowRight,
+  Filter,
+  MapPin,
+  Search,
+  SlidersHorizontal,
+  Star,
+  X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
@@ -92,6 +107,10 @@ export default function ShopPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSeason, setSelectedSeason] = useState<SeasonFilter>("all");
+  const [selectedPriceRange, setSelectedPriceRange] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDiet, setSelectedDiet] = useState("all");
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
   const activeState = search.state ?? "";
 
   useEffect(() => {
@@ -100,6 +119,18 @@ export default function ShopPage() {
 
   const allProductsQuery = useGetAllProducts();
   const stateProductsQuery = useGetProductsByState(activeState);
+
+  // Sponsored / ranked ads
+  const { data: rankedAds } = useGetRankedAds("", "");
+  const { actor } = useActor();
+
+  // Build a map: productId (string) → RankedAd
+  const sponsoredMap = new Map<string, RankedAd>();
+  if (rankedAds) {
+    for (const ad of rankedAds) {
+      sponsoredMap.set(ad.productId.toString(), ad);
+    }
+  }
 
   const rawProducts = (
     activeState
@@ -125,8 +156,42 @@ export default function ShopPage() {
       })();
     const matchesSeason =
       selectedSeason === "all" || (p as LocalProduct).season === selectedSeason;
-    return matchesSearch && matchesSeason;
+
+    const matchesPrice = (() => {
+      if (selectedPriceRange === "all") return true;
+      const price = p.sellingPrice;
+      if (selectedPriceRange === "under150") return price < 150;
+      if (selectedPriceRange === "150-250") return price >= 150 && price <= 250;
+      if (selectedPriceRange === "250-350") return price > 250 && price <= 350;
+      if (selectedPriceRange === "350plus") return price > 350;
+      return true;
+    })();
+
+    const matchesCategory =
+      selectedCategory === "all" ||
+      p.category.toLowerCase() === selectedCategory.toLowerCase();
+
+    const matchesDiet = (() => {
+      if (selectedDiet === "all" || selectedDiet === "veg") return true;
+      // All products are veg — vegan returns nothing
+      return false;
+    })();
+
+    return (
+      matchesSearch &&
+      matchesSeason &&
+      matchesPrice &&
+      matchesCategory &&
+      matchesDiet
+    );
   });
+
+  // Count active advanced filters
+  const activeAdvancedCount = [
+    selectedPriceRange !== "all",
+    selectedCategory !== "all",
+    selectedDiet !== "all",
+  ].filter(Boolean).length;
 
   function handleStateFilter(state: string) {
     if (state === activeState) {
@@ -312,7 +377,7 @@ export default function ShopPage() {
 
           {/* Season Filter */}
           <div
-            className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-1"
+            className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-1"
             role="tablist"
             aria-label="Filter by season"
           >
@@ -339,6 +404,146 @@ export default function ShopPage() {
               </button>
             ))}
           </div>
+
+          {/* Advanced Filters toggle (mobile) + desktop filters */}
+          <div className="mb-4">
+            {/* Mobile: toggle button */}
+            <button
+              type="button"
+              onClick={() => setAdvancedFiltersOpen((v) => !v)}
+              className="sm:hidden flex items-center gap-2 text-sm font-body font-semibold text-foreground border border-border rounded-full px-4 py-2 hover:border-saffron/50 transition-colors"
+              data-ocid="shop.filters.toggle"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              Filters
+              {activeAdvancedCount > 0 && (
+                <span className="bg-saffron text-cream text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  {activeAdvancedCount}
+                </span>
+              )}
+            </button>
+
+            {/* Advanced filter panels — always visible on desktop, toggle on mobile */}
+            <div
+              className={`${
+                advancedFiltersOpen ? "block" : "hidden"
+              } sm:block mt-3 sm:mt-0 space-y-3`}
+            >
+              {/* Price Range */}
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                <span className="flex items-center text-xs font-body text-muted-foreground font-semibold uppercase tracking-wider mr-1 self-center whitespace-nowrap shrink-0">
+                  Price:
+                </span>
+                {[
+                  { value: "all", label: "All Prices" },
+                  { value: "under150", label: "Under ₹150" },
+                  { value: "150-250", label: "₹150–₹250" },
+                  { value: "250-350", label: "₹250–₹350" },
+                  { value: "350plus", label: "₹350+" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setSelectedPriceRange(opt.value)}
+                    data-ocid="shop.price.tab"
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-body transition-all border whitespace-nowrap shrink-0 ${
+                      selectedPriceRange === opt.value
+                        ? "bg-foreground text-background border-foreground"
+                        : "bg-background text-foreground/60 border-border hover:border-foreground/30"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Category */}
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                <span className="flex items-center text-xs font-body text-muted-foreground font-semibold uppercase tracking-wider mr-1 self-center whitespace-nowrap shrink-0">
+                  Category:
+                </span>
+                {[
+                  "all",
+                  "achar",
+                  "sweets",
+                  "namkeen",
+                  "snacks",
+                  "ladoo",
+                  "masala",
+                  "chutney",
+                  "barfi",
+                ].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat)}
+                    data-ocid="shop.category.tab"
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-body transition-all border whitespace-nowrap shrink-0 capitalize ${
+                      selectedCategory === cat
+                        ? "bg-saffron text-cream border-saffron shadow-warm"
+                        : "bg-background text-foreground/60 border-border hover:border-saffron/40"
+                    }`}
+                  >
+                    {cat === "all" ? "All Categories" : cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Diet Type */}
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                <span className="flex items-center text-xs font-body text-muted-foreground font-semibold uppercase tracking-wider mr-1 self-center whitespace-nowrap shrink-0">
+                  Diet:
+                </span>
+                {[
+                  { value: "all", label: "All" },
+                  { value: "veg", label: "Veg 🌿" },
+                  { value: "vegan", label: "Vegan 🌱" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setSelectedDiet(opt.value)}
+                    data-ocid="shop.diet.tab"
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold font-body transition-all border whitespace-nowrap shrink-0 ${
+                      selectedDiet === opt.value
+                        ? "bg-foreground text-background border-foreground"
+                        : "bg-background text-foreground/60 border-border hover:border-foreground/30"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Clear all advanced */}
+              {activeAdvancedCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPriceRange("all");
+                    setSelectedCategory("all");
+                    setSelectedDiet("all");
+                  }}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-body transition-colors"
+                  data-ocid="shop.filters.clear_button"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Result count */}
+          {!isLoading && (
+            <p className="text-muted-foreground text-xs font-body mb-4">
+              Showing{" "}
+              <span className="font-semibold text-foreground">
+                {products.length}
+              </span>{" "}
+              product{products.length !== 1 ? "s" : ""}
+            </p>
+          )}
 
           {/* Products Grid */}
           {isLoading ? (
@@ -373,17 +578,22 @@ export default function ShopPage() {
                     : "No products available"}
               </h3>
               <p className="text-muted-foreground font-body text-sm mb-6 max-w-xs mx-auto">
-                {searchQuery
-                  ? "Try a different search term"
-                  : selectedSeason !== "all"
-                    ? "Try selecting a different season or clear the filter"
-                    : "We're adding more products soon. Check back!"}
+                {selectedDiet === "vegan"
+                  ? "All our products are made with ghee and milk — currently no vegan-certified items. We're working on it!"
+                  : searchQuery
+                    ? "Try a different search term"
+                    : selectedSeason !== "all" || activeAdvancedCount > 0
+                      ? "Try adjusting or clearing your filters"
+                      : "We're adding more products soon. Check back!"}
               </p>
               <button
                 type="button"
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedSeason("all");
+                  setSelectedPriceRange("all");
+                  setSelectedCategory("all");
+                  setSelectedDiet("all");
                   navigate({ to: "/shop", search: { state: undefined } });
                 }}
                 className="text-saffron hover:text-terracotta font-semibold text-sm font-body underline underline-offset-2"
@@ -407,8 +617,26 @@ export default function ShopPage() {
                       )
                     : 0;
                 const localProduct = product as LocalProduct;
+                const sponsoredAd = sponsoredMap.get(product.id.toString());
                 return (
-                  <motion.div key={product.id.toString()} variants={item}>
+                  <motion.div
+                    key={product.id.toString()}
+                    variants={item}
+                    onAnimationComplete={() => {
+                      // Fire impression for sponsored products (fire-and-forget)
+                      if (sponsoredAd && actor) {
+                        actor
+                          .recordAdImpression(
+                            sponsoredAd.campaignId,
+                            sponsoredAd.productId,
+                            sponsoredAd.makerId,
+                          )
+                          .catch(() => {
+                            /* silent */
+                          });
+                      }
+                    }}
+                  >
                     <div
                       className="group bg-card rounded-2xl border border-border overflow-hidden card-warm shadow-xs h-full flex flex-col"
                       data-ocid={`shop.product.item.${idx + 1}`}
@@ -420,11 +648,30 @@ export default function ShopPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           loading="lazy"
                         />
+                        {/* Sponsored badge */}
+                        {sponsoredAd && (
+                          <div className="absolute top-2 left-2 z-10">
+                            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border bg-amber-100 text-amber-800 border-amber-300 font-body font-semibold shadow-sm">
+                              ⭐ Sponsored
+                            </span>
+                          </div>
+                        )}
                         {savings > 0 && (
-                          <div className="absolute top-3 left-3">
+                          <div
+                            className={`absolute ${sponsoredAd ? "top-7" : "top-3"} left-3`}
+                          >
                             <span className="savings-badge">
                               {savings}% OFF
                             </span>
+                          </div>
+                        )}
+                        {localProduct.availability && (
+                          <div className="absolute top-3 right-3">
+                            <AvailabilityBadge
+                              availability={
+                                localProduct.availability as AvailabilityType
+                              }
+                            />
                           </div>
                         )}
                         {!product.isAvailable && (

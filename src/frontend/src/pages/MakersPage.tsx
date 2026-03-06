@@ -3,7 +3,7 @@ import { getMakerImage } from "@/constants/images";
 import { getMakerStoryByName } from "@/constants/makerStories";
 import { useGetAllMakers } from "@/hooks/useQueries";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect } from "react";
 
@@ -107,9 +107,13 @@ export default function MakersPage() {
                       <span className="state-badge mb-2 self-start">
                         {maker.state}
                       </span>
-                      <h2 className="font-display font-bold text-lg text-foreground mb-2">
+                      <h2 className="font-display font-bold text-lg text-foreground mb-1.5">
                         {maker.name}
                       </h2>
+                      <span className="inline-flex items-center gap-1 bg-green-50 border border-green-200 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-body font-semibold mb-2">
+                        <ShieldCheck className="w-3 h-3" />
+                        Verified Kitchen ✓
+                      </span>
                       <p className="text-muted-foreground text-sm font-body leading-relaxed flex-1 line-clamp-3">
                         {maker.bio}
                       </p>

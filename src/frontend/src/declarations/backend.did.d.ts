@@ -10,6 +10,79 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AdAnalytics {
+  'cpo' : number,
+  'clicks' : bigint,
+  'orders' : bigint,
+  'roas' : number,
+  'campaignId' : AdCampaignId,
+  'impressions' : bigint,
+  'totalSpend' : number,
+  'totalRevenue' : number,
+}
+export interface AdCampaign {
+  'id' : AdCampaignId,
+  'status' : string,
+  'totalOrders' : bigint,
+  'targetState' : string,
+  'name' : string,
+  'createdAt' : Time,
+  'bidPerClick' : number,
+  'makerId' : MakerId,
+  'totalImpressions' : bigint,
+  'qualityScore' : number,
+  'dailyBudget' : number,
+  'totalSpend' : number,
+  'adType' : string,
+  'targetCategory' : string,
+  'totalRevenue' : number,
+  'totalClicks' : bigint,
+}
+export type AdCampaignId = bigint;
+export type BookingId = bigint;
+export interface BusBookingStats {
+  'toCityCounts' : Array<[string, bigint]>,
+  'totalBookings' : bigint,
+  'fromCityCounts' : Array<[string, bigint]>,
+}
+export type CampaignId = bigint;
+export interface CrmCampaign {
+  'id' : CampaignId,
+  'status' : string,
+  'name' : string,
+  'createdAt' : Time,
+  'sentCount' : bigint,
+  'triggerType' : string,
+  'channel' : string,
+  'targetSegment' : string,
+}
+export interface CrmStats {
+  'loyalCustomers' : bigint,
+  'totalOrders' : bigint,
+  'newCustomers' : bigint,
+  'totalRevenue' : number,
+  'totalCustomers' : bigint,
+  'atRiskCustomers' : bigint,
+  'avgOrderValue' : number,
+}
+export interface CustomerAccount {
+  'id' : CustomerId,
+  'oilPreference' : string,
+  'principal' : Principal,
+  'asharfiPoints' : bigint,
+  'signupDate' : Time,
+  'city' : string,
+  'name' : string,
+  'spicePreference' : string,
+  'email' : string,
+  'state' : string,
+  'sweetnessPreference' : string,
+  'regionPreference' : string,
+  'phone' : string,
+  'dietType' : string,
+  'lifecycleStage' : string,
+}
+export type CustomerId = bigint;
 export interface Maker {
   'id' : MakerId,
   'bio' : string,
@@ -33,9 +106,23 @@ export interface Order {
   'customerAddress' : string,
   'advanceAmount' : number,
   'totalAmount' : number,
+  'customerId' : [] | [CustomerId],
   'quantityKg' : number,
 }
 export type OrderId = bigint;
+export interface OrderItem {
+  'id' : OrderItemId,
+  'oilLevel' : string,
+  'customerPrincipal' : [] | [Principal],
+  'saltLevel' : string,
+  'productId' : ProductId,
+  'orderId' : OrderId,
+  'portionSize' : string,
+  'spiceLevel' : string,
+  'quantity' : number,
+  'sweetnessLevel' : string,
+}
+export type OrderItemId = bigint;
 export type OrderStatus = { 'preparing' : null } |
   { 'pending' : null } |
   { 'dispatched' : null } |
@@ -58,6 +145,14 @@ export interface Product {
   'ingredients' : Array<string>,
 }
 export type ProductId = bigint;
+export interface RankedAd {
+  'campaignId' : AdCampaignId,
+  'makerId' : MakerId,
+  'productId' : ProductId,
+  'adType' : string,
+  'adRankScore' : number,
+}
+export type ReserveOrderId = bigint;
 export interface StateCount { 'count' : bigint, 'state' : string }
 export interface Testimonial {
   'id' : TestimonialId,
@@ -79,38 +174,121 @@ export type UserRole = { 'admin' : null } |
   { 'guest' : null };
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addAsharfiPoints' : ActorMethod<[CustomerId, bigint], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'bookBus' : ActorMethod<
+    [string, string, string, string, Time, bigint],
+    BookingId
+  >,
+  'convertReserveToOrder' : ActorMethod<[ReserveOrderId], OrderId>,
+  'createAdCampaign' : ActorMethod<
+    [MakerId, string, string, number, number, string, string],
+    AdCampaignId
+  >,
+  'createCampaign' : ActorMethod<[string, string, string, string], CampaignId>,
   'createMaker' : ActorMethod<[Maker], MakerId>,
   'createOrder' : ActorMethod<
-    [ProductId, string, string, string, number, number, string],
+    [
+      ProductId,
+      string,
+      string,
+      string,
+      number,
+      number,
+      string,
+      [] | [CustomerId],
+    ],
     OrderId
+  >,
+  'createOrderItem' : ActorMethod<
+    [OrderId, ProductId, number, string, string, string, string, string],
+    OrderItemId
   >,
   'createProduct' : ActorMethod<[Product], ProductId>,
   'createTestimonial' : ActorMethod<[Testimonial], TestimonialId>,
   'deleteMaker' : ActorMethod<[MakerId], undefined>,
   'deleteProduct' : ActorMethod<[ProductId], undefined>,
   'deleteTestimonial' : ActorMethod<[TestimonialId], undefined>,
+  'getAdAnalytics' : ActorMethod<[AdCampaignId], AdAnalytics>,
+  'getAdCampaignsByMaker' : ActorMethod<[MakerId], Array<AdCampaign>>,
+  'getAllAdCampaigns' : ActorMethod<[], Array<AdCampaign>>,
+  'getAllCampaigns' : ActorMethod<[], Array<CrmCampaign>>,
+  'getAllCustomers' : ActorMethod<[], Array<CustomerAccount>>,
   'getAllMakers' : ActorMethod<[], Array<Maker>>,
   'getAllOrders' : ActorMethod<[], Array<Order>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
   'getAllTestimonials' : ActorMethod<[], Array<Testimonial>>,
+  'getBusBookingStats' : ActorMethod<[], BusBookingStats>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCrmStats' : ActorMethod<[], CrmStats>,
+  'getCustomerById' : ActorMethod<[CustomerId], [] | [CustomerAccount]>,
   'getMakerWithProducts' : ActorMethod<
     [MakerId],
     [] | [[Maker, Array<Product>]]
   >,
   'getMakersByState' : ActorMethod<[string], Array<Maker>>,
+  'getMyAccount' : ActorMethod<[], [] | [CustomerAccount]>,
+  'getMyOrderItems' : ActorMethod<[], Array<OrderItem>>,
+  'getMyOrders' : ActorMethod<[string], Array<Order>>,
   'getOrderById' : ActorMethod<[OrderId], [] | [Order]>,
+  'getOrderItemsByOrder' : ActorMethod<[OrderId], Array<OrderItem>>,
+  'getPlatformAdRevenue' : ActorMethod<[], number>,
   'getProductById' : ActorMethod<[ProductId], [] | [Product]>,
   'getProductsByCategory' : ActorMethod<[string], Array<Product>>,
   'getProductsByState' : ActorMethod<[string], Array<Product>>,
+  'getRankedAds' : ActorMethod<[string, string], Array<RankedAd>>,
   'getStatesListWithProductCounts' : ActorMethod<[], Array<StateCount>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'pauseAdCampaign' : ActorMethod<[AdCampaignId], undefined>,
+  'recordAdClick' : ActorMethod<[AdCampaignId, ProductId, MakerId], number>,
+  'recordAdConversion' : ActorMethod<[AdCampaignId, number], undefined>,
+  'recordAdImpression' : ActorMethod<
+    [AdCampaignId, ProductId, MakerId],
+    undefined
+  >,
+  'recordCustomerEvent' : ActorMethod<
+    [CustomerId, string, ProductId],
+    undefined
+  >,
+  'registerCustomer' : ActorMethod<
+    [string, string, string, string, string],
+    CustomerAccount
+  >,
+  'reserveProduct' : ActorMethod<
+    [
+      ProductId,
+      string,
+      string,
+      string,
+      number,
+      number,
+      string,
+      [] | [CustomerId],
+    ],
+    ReserveOrderId
+  >,
+  'resumeAdCampaign' : ActorMethod<[AdCampaignId], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'seedData' : ActorMethod<[], undefined>,
+  'updateCampaignStatus' : ActorMethod<[CampaignId, string], undefined>,
   'updateMaker' : ActorMethod<[Maker], undefined>,
+  'updateMyAccount' : ActorMethod<
+    [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+    ],
+    undefined
+  >,
   'updateOrderStatus' : ActorMethod<[OrderId, OrderStatus], undefined>,
   'updateProduct' : ActorMethod<[Product], undefined>,
   'updateTestimonial' : ActorMethod<[Testimonial], undefined>,

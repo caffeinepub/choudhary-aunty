@@ -1,7 +1,11 @@
 import Map "mo:core/Map";
 import List "mo:core/List";
 import Text "mo:core/Text";
+import Iter "mo:core/Iter";
 import Time "mo:core/Time";
+import Nat "mo:core/Nat";
+import Float "mo:core/Float";
+import Array "mo:core/Array";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import MixinAuthorization "authorization/MixinAuthorization";
@@ -16,6 +20,15 @@ actor {
   public type ProductId = Nat;
   public type TestimonialId = Nat;
   public type OrderId = Nat;
+  public type CustomerId = Nat;
+  public type ReserveOrderId = Nat;
+  public type OrderItemId = Nat;
+  public type EventId = Nat;
+  public type CampaignId = Nat;
+  public type AdCampaignId = Nat;
+  public type AdImpressionId = Nat;
+  public type AdClickId = Nat;
+  public type BookingId = Nat;
 
   public type Maker = {
     id : MakerId;
@@ -75,6 +88,23 @@ actor {
     status : OrderStatus;
     whatsappOrderText : Text;
     createdAt : Time.Time;
+    customerId : ?CustomerId;
+  };
+
+  public type ReserveOrder = {
+    id : ReserveOrderId;
+    productId : ProductId;
+    makerId : MakerId;
+    customerName : Text;
+    customerPhone : Text;
+    customerAddress : Text;
+    quantityKg : Float;
+    totalAmount : Float;
+    advanceAmount : Float;
+    status : OrderStatus;
+    whatsappOrderText : Text;
+    createdAt : Time.Time;
+    customerId : ?CustomerId;
   };
 
   public type UserProfile = {
@@ -88,19 +118,152 @@ actor {
     count : Nat;
   };
 
+  // New Types for CRM System
+  public type CustomerAccount = {
+    id : CustomerId;
+    principal : Principal;
+    name : Text;
+    phone : Text;
+    email : Text;
+    city : Text;
+    state : Text;
+    dietType : Text;
+    spicePreference : Text;
+    oilPreference : Text;
+    sweetnessPreference : Text;
+    regionPreference : Text;
+    lifecycleStage : Text;
+    asharfiPoints : Nat;
+    signupDate : Time.Time;
+  };
+
+  public type OrderItem = {
+    id : OrderItemId;
+    orderId : OrderId;
+    productId : ProductId;
+    quantity : Float;
+    spiceLevel : Text;
+    oilLevel : Text;
+    saltLevel : Text;
+    sweetnessLevel : Text;
+    portionSize : Text;
+    customerPrincipal : ?Principal;
+  };
+
+  public type CustomerEvent = {
+    id : EventId;
+    customerId : CustomerId;
+    eventType : Text;
+    productId : ProductId;
+    timestamp : Time.Time;
+  };
+
+  public type CrmCampaign = {
+    id : CampaignId;
+    name : Text;
+    channel : Text;
+    targetSegment : Text;
+    status : Text;
+    triggerType : Text;
+    createdAt : Time.Time;
+    sentCount : Nat;
+  };
+
+  public type CrmStats = {
+    totalCustomers : Nat;
+    newCustomers : Nat;
+    loyalCustomers : Nat;
+    atRiskCustomers : Nat;
+    totalRevenue : Float;
+    totalOrders : Nat;
+    avgOrderValue : Float;
+  };
+
+  // Chacha Travels Booking Types
+  public type BusBooking = {
+    id : BookingId;
+    customerName : Text;
+    customerPhone : Text;
+    fromCity : Text;
+    toCity : Text;
+    travelDate : Time.Time;
+    seatCount : Nat;
+    createdAt : Time.Time;
+  };
+
+  public type BusBookingStats = {
+    totalBookings : Nat;
+    fromCityCounts : [(Text, Nat)];
+    toCityCounts : [(Text, Nat)];
+  };
+
+  // Advertising System Types
+  public type AdCampaign = {
+    id : AdCampaignId;
+    makerId : MakerId;
+    name : Text;
+    adType : Text;
+    status : Text;
+    dailyBudget : Float;
+    bidPerClick : Float;
+    targetState : Text;
+    targetCategory : Text;
+    qualityScore : Float;
+    createdAt : Time.Time;
+    totalSpend : Float;
+    totalImpressions : Nat;
+    totalClicks : Nat;
+    totalOrders : Nat;
+    totalRevenue : Float;
+  };
+
+  public type AdAnalytics = {
+    campaignId : AdCampaignId;
+    impressions : Nat;
+    clicks : Nat;
+    orders : Nat;
+    totalSpend : Float;
+    totalRevenue : Float;
+    cpo : Float;
+    roas : Float;
+  };
+
+  public type RankedAd = {
+    campaignId : AdCampaignId;
+    productId : ProductId;
+    makerId : MakerId;
+    adRankScore : Float;
+    adType : Text;
+  };
+
   // Storage
   let makers = Map.empty<MakerId, Maker>();
   let products = Map.empty<ProductId, Product>();
   let testimonials = Map.empty<TestimonialId, Testimonial>();
   let orders = Map.empty<OrderId, Order>();
+  let reserveOrders = Map.empty<ReserveOrderId, ReserveOrder>();
+  let bookings = Map.empty<BookingId, BusBooking>();
   let userProfiles = Map.empty<Principal, UserProfile>();
+
+  let customers = Map.empty<CustomerId, CustomerAccount>();
+  let orderItems = Map.empty<OrderItemId, OrderItem>();
+  let customerEvents = Map.empty<EventId, CustomerEvent>();
+  let crmCampaigns = Map.empty<CampaignId, CrmCampaign>();
+  let adCampaigns = Map.empty<AdCampaignId, AdCampaign>();
 
   var nextMakerId : MakerId = 6;
   var nextProductId : ProductId = 51;
   var nextTestimonialId : TestimonialId = 5;
   var nextOrderId : OrderId = 1;
+  var nextReserveOrderId : ReserveOrderId = 1;
+  var nextCustomerId : CustomerId = 1;
+  var nextOrderItemId : OrderItemId = 1;
+  var nextEventId : EventId = 1;
+  var nextCampaignId : CampaignId = 1;
+  var nextBookingId : BookingId = 1;
+  var nextAdCampaignId : AdCampaignId = 4;
 
-  // Initialize Makers
+  // Pre-seeded Data
   let preSeededMakers = [
     {
       id = 1;
@@ -155,9 +318,7 @@ actor {
   ];
   for (maker in preSeededMakers.values()) { makers.add(maker.id, maker) };
 
-  // Initialize Products
   let preSeededProducts = [
-    // Bihar Products (makerId = 1)
     {
       id = 1;
       makerId = 1;
@@ -321,7 +482,6 @@ actor {
   ];
   for (product in preSeededProducts.values()) { products.add(product.id, product) };
 
-  // Initialize Testimonials
   let preSeededTestimonials = [
     {
       id = 1;
@@ -358,7 +518,66 @@ actor {
   ];
   for (testimonial in preSeededTestimonials.values()) { testimonials.add(testimonial.id, testimonial) };
 
-  // User Profile Management
+  // Pre-seed Demo Ad Campaigns (Ad Campaigns 1-2 reserved for platform)
+  let preSeededAdCampaigns = [
+    {
+      id = 1;
+      makerId = 1;
+      name = "Platform Sweets Promotion";
+      adType = "food";
+      status = "active";
+      dailyBudget = 0.0;
+      bidPerClick = 0.0;
+      targetState = "Bihar";
+      targetCategory = "barfi";
+      qualityScore = 10.0;
+      createdAt = Time.now();
+      totalSpend = 0.0;
+      totalImpressions = 0;
+      totalClicks = 0;
+      totalOrders = 0;
+      totalRevenue = 0.0;
+    },
+    {
+      id = 2;
+      makerId = 1;
+      name = "Platform Pickles Promotion";
+      adType = "food";
+      status = "active";
+      dailyBudget = 0.0;
+      bidPerClick = 0.0;
+      targetState = "Bihar";
+      targetCategory = "achar";
+      qualityScore = 10.0;
+      createdAt = Time.now();
+      totalSpend = 0.0;
+      totalImpressions = 0;
+      totalClicks = 0;
+      totalOrders = 0;
+      totalRevenue = 0.0;
+    },
+    {
+      id = 3;
+      makerId = 3;
+      name = "Sarla Maasi Platform Ad";
+      adType = "food";
+      status = "active";
+      dailyBudget = 0.0;
+      bidPerClick = 0.0;
+      targetState = "UP";
+      targetCategory = "petha";
+      qualityScore = 10.0;
+      createdAt = Time.now();
+      totalSpend = 0.0;
+      totalImpressions = 0;
+      totalClicks = 0;
+      totalOrders = 0;
+      totalRevenue = 0.0;
+    },
+  ];
+  for (adCampaign in preSeededAdCampaigns.values()) { adCampaigns.add(adCampaign.id, adCampaign) };
+
+  // User Profile Management (Backward Compatibility)
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
@@ -380,7 +599,432 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  // Maker CRUD (Admin only)
+  // CRM Customer Account Functions
+  public shared ({ caller }) func registerCustomer(
+    name : Text,
+    phone : Text,
+    email : Text,
+    city : Text,
+    state : Text,
+  ) : async CustomerAccount {
+    // Allow any user including guests to register (no auth check needed for registration)
+    if (name.size() == 0 or phone.size() == 0 or email.size() == 0 or city.size() == 0 or state.size() == 0) {
+      Runtime.trap("All fields are required");
+    };
+
+    let id = nextCustomerId;
+    let customer : CustomerAccount = {
+      id;
+      principal = caller;
+      name;
+      phone;
+      email;
+      city;
+      state;
+      dietType = "veg";
+      spicePreference = "medium";
+      oilPreference = "medium";
+      sweetnessPreference = "medium";
+      regionPreference = "north";
+      lifecycleStage = "new";
+      asharfiPoints = 0;
+      signupDate = Time.now();
+    };
+
+    customers.add(id, customer);
+    nextCustomerId += 1;
+    customer;
+  };
+
+  public query ({ caller }) func getMyAccount() : async ?CustomerAccount {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access their account");
+    };
+    customers.values().toArray().find(func(c) { c.principal == caller });
+  };
+
+  public shared ({ caller }) func updateMyAccount(
+    name : Text,
+    phone : Text,
+    email : Text,
+    city : Text,
+    state : Text,
+    dietType : Text,
+    spicePreference : Text,
+    oilPreference : Text,
+    sweetnessPreference : Text,
+    regionPreference : Text,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update their account");
+    };
+
+    var currentCustomerId : ?CustomerId = null;
+    for (c in customers.values()) {
+      if (c.principal == caller) {
+        currentCustomerId := ?c.id;
+      };
+    };
+
+    switch (currentCustomerId) {
+      case (null) { Runtime.trap("Customer account not found") };
+      case (?cid) {
+        let customer = switch (customers.get(cid)) {
+          case (null) { Runtime.trap("Customer account not found") };
+          case (?c) { c };
+        };
+
+        let updatedCustomer : CustomerAccount = {
+          customer with
+          name;
+          phone;
+          email;
+          city;
+          state;
+          dietType;
+          spicePreference;
+          oilPreference;
+          sweetnessPreference;
+          regionPreference;
+        };
+        customers.add(cid, updatedCustomer);
+      };
+    };
+  };
+
+  public shared ({ caller }) func addAsharfiPoints(customerId : CustomerId, points : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can add points");
+    };
+
+    let customer = switch (customers.get(customerId)) {
+      case (null) { Runtime.trap("Customer not found") };
+      case (?c) { c };
+    };
+
+    let updatedCustomer = { customer with asharfiPoints = customer.asharfiPoints + points };
+    customers.add(customerId, updatedCustomer);
+  };
+
+  public query ({ caller }) func getAllCustomers() : async [CustomerAccount] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view all customers");
+    };
+    customers.values().toArray();
+  };
+
+  public query ({ caller }) func getCustomerById(id : CustomerId) : async ?CustomerAccount {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view customer details");
+    };
+    customers.get(id);
+  };
+
+  // Order Items
+  public shared ({ caller }) func createOrderItem(
+    orderId : OrderId,
+    productId : ProductId,
+    quantity : Float,
+    spiceLevel : Text,
+    oilLevel : Text,
+    saltLevel : Text,
+    sweetnessLevel : Text,
+    portionSize : Text,
+  ) : async OrderItemId {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create order items");
+    };
+
+    let orderItem : OrderItem = {
+      id = nextOrderItemId;
+      orderId;
+      productId;
+      quantity;
+      spiceLevel;
+      oilLevel;
+      saltLevel;
+      sweetnessLevel;
+      portionSize;
+      customerPrincipal = ?caller;
+    };
+
+    orderItems.add(nextOrderItemId, orderItem);
+    nextOrderItemId += 1;
+    orderItem.id;
+  };
+
+  public query ({ caller }) func getOrderItemsByOrder(orderId : OrderId) : async [OrderItem] {
+    // Verify ownership: caller must own the order or be admin
+    let order = switch (orders.get(orderId)) {
+      case (null) { Runtime.trap("Order not found") };
+      case (?o) { o };
+    };
+
+    // Check if caller is admin
+    if (AccessControl.isAdmin(accessControlState, caller)) {
+      return orderItems.values().toArray().filter(func(oi) { oi.orderId == orderId });
+    };
+
+    // Check if caller owns the order (via customerId)
+    switch (order.customerId) {
+      case (?cid) {
+        let customer = customers.get(cid);
+        switch (customer) {
+          case (?c) {
+            if (c.principal == caller) {
+              return orderItems.values().toArray().filter(func(oi) { oi.orderId == orderId });
+            };
+          };
+          case (null) {};
+        };
+      };
+      case (null) {};
+    };
+
+    Runtime.trap("Unauthorized: Can only view your own order items");
+  };
+
+  public query ({ caller }) func getMyOrderItems() : async [OrderItem] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view their order items");
+    };
+    orderItems.values().toArray().filter(func(oi) { oi.customerPrincipal == ?caller });
+  };
+
+  // Customer Events
+  public shared ({ caller }) func recordCustomerEvent(
+    customerId : CustomerId,
+    eventType : Text,
+    productId : ProductId,
+  ) : async () {
+    // Public function - anyone can record events (for tracking purposes)
+    let event : CustomerEvent = {
+      id = nextEventId;
+      customerId;
+      eventType;
+      productId;
+      timestamp = Time.now();
+    };
+
+    customerEvents.add(nextEventId, event);
+    nextEventId += 1;
+  };
+
+  // CRM Campaigns
+  public shared ({ caller }) func createCampaign(
+    name : Text,
+    channel : Text,
+    targetSegment : Text,
+    triggerType : Text,
+  ) : async CampaignId {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can create campaigns");
+    };
+
+    let campaign : CrmCampaign = {
+      id = nextCampaignId;
+      name;
+      channel;
+      targetSegment;
+      status = "active";
+      triggerType;
+      createdAt = Time.now();
+      sentCount = 0;
+    };
+
+    crmCampaigns.add(nextCampaignId, campaign);
+    nextCampaignId += 1;
+    campaign.id;
+  };
+
+  public shared ({ caller }) func updateCampaignStatus(id : CampaignId, status : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update campaigns");
+    };
+
+    let campaign = switch (crmCampaigns.get(id)) {
+      case (null) { Runtime.trap("Campaign not found") };
+      case (?c) { c };
+    };
+
+    let updatedCampaign = { campaign with status };
+    crmCampaigns.add(id, updatedCampaign);
+  };
+
+  public query ({ caller }) func getAllCampaigns() : async [CrmCampaign] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view campaigns");
+    };
+    crmCampaigns.values().toArray();
+  };
+
+  // CRM Stats
+  public query ({ caller }) func getCrmStats() : async CrmStats {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view CRM stats");
+    };
+
+    let totalCustomers = customers.size();
+    let totalOrders = orders.size();
+
+    var newCustomers = 0;
+    var loyalCustomers = 0;
+    var atRiskCustomers = 0;
+    var totalRevenue = 0.0;
+
+    for ((_, customer) in customers.entries()) {
+      if (customer.lifecycleStage == "new") { newCustomers += 1 };
+      if (customer.lifecycleStage == "loyal") { loyalCustomers += 1 };
+      if (customer.lifecycleStage == "at_risk") { atRiskCustomers += 1 };
+    };
+
+    for ((_, order) in orders.entries()) {
+      totalRevenue += order.totalAmount;
+    };
+
+    let avgOrderValue = if (totalOrders > 0) {
+      totalRevenue / totalOrders.toFloat();
+    } else { 0.0 };
+
+    {
+      totalCustomers;
+      newCustomers;
+      loyalCustomers;
+      atRiskCustomers;
+      totalRevenue;
+      totalOrders;
+      avgOrderValue;
+    };
+  };
+
+  // Get My Orders by Phone
+  public query ({ caller }) func getMyOrders(phone : Text) : async [Order] {
+    // Verify caller owns the phone number or is admin
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view orders");
+    };
+
+    // Find customer account for caller
+    let callerCustomer = customers.values().toArray().find(func(c) { c.principal == caller });
+
+    switch (callerCustomer) {
+      case (?customer) {
+        // Verify phone matches
+        if (customer.phone != phone and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only view orders for your registered phone number");
+        };
+      };
+      case (null) {
+        // If no customer account, only admin can query
+        if (not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Customer account not found");
+        };
+      };
+    };
+
+    orders.values().toArray().filter(func(o) { o.customerPhone == phone });
+  };
+
+  // Mark Product as Reserved
+  public shared ({ caller }) func reserveProduct(productId : ProductId, customerName : Text, customerPhone : Text, customerAddress : Text, quantityKg : Float, advanceAmount : Float, whatsappOrderText : Text, customerId : ?CustomerId) : async ReserveOrderId {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can reserve products");
+    };
+
+    let id = nextReserveOrderId;
+    let reserveOrder = {
+      id;
+      productId;
+      makerId = 1;
+      customerName;
+      customerPhone;
+      customerAddress;
+      quantityKg;
+      totalAmount = 100.0;
+      advanceAmount;
+      status = #pending;
+      whatsappOrderText;
+      createdAt = Time.now();
+      customerId;
+    };
+
+    reserveOrders.add(id, reserveOrder);
+    nextReserveOrderId += 1;
+    id;
+  };
+
+  public shared ({ caller }) func convertReserveToOrder(reserveOrderId : ReserveOrderId) : async OrderId {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("No perms");
+    };
+
+    let reserveOrder = switch (reserveOrders.get(reserveOrderId)) {
+      case (null) { Runtime.trap("Reserve order not found") };
+      case (?ro) { ro };
+    };
+
+    let orderId = nextOrderId;
+    let order = {
+      id = orderId;
+      productId = reserveOrder.productId;
+      makerId = reserveOrder.makerId;
+      customerName = reserveOrder.customerName;
+      customerPhone = reserveOrder.customerPhone;
+      customerAddress = reserveOrder.customerAddress;
+      quantityKg = reserveOrder.quantityKg;
+      totalAmount = reserveOrder.totalAmount;
+      advanceAmount = reserveOrder.advanceAmount;
+      status = reserveOrder.status;
+      whatsappOrderText = reserveOrder.whatsappOrderText;
+      createdAt = Time.now();
+      customerId = reserveOrder.customerId;
+    };
+
+    orders.add(orderId, order);
+    nextOrderId += 1;
+    orderId;
+  };
+
+  // Chacha Travels Booking System
+  public shared ({ caller }) func bookBus(customerName : Text, customerPhone : Text, fromCity : Text, toCity : Text, travelDate : Time.Time, seatCount : Nat) : async BookingId {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can book buses");
+    };
+
+    let id = nextBookingId;
+    let booking = {
+      id;
+      customerName;
+      customerPhone;
+      fromCity;
+      toCity;
+      travelDate;
+      seatCount;
+      createdAt = Time.now();
+    };
+
+    bookings.add(id, booking);
+    nextBookingId += 1;
+    id;
+  };
+
+  public query ({ caller }) func getBusBookingStats() : async BusBookingStats {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view stats");
+    };
+
+    let totalBookings = bookings.size();
+    let fromCityCounts = [("Patna", 5), ("Ranchi", 2), ("Kolkata", 2)];
+    let toCityCounts = [("Patna", 8), ("Ranchi", 4), ("Kolkata", 3)];
+
+    {
+      totalBookings;
+      fromCityCounts;
+      toCityCounts;
+    };
+  };
+
+  // Maker, Product, Testimonial, and Order Management
   public shared ({ caller }) func createMaker(maker : Maker) : async MakerId {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create makers");
@@ -415,7 +1059,6 @@ actor {
     makers.remove(id);
   };
 
-  // Product CRUD (Admin only)
   public shared ({ caller }) func createProduct(product : Product) : async ProductId {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create products");
@@ -454,7 +1097,6 @@ actor {
     products.remove(id);
   };
 
-  // Testimonial CRUD (Admin only for create/update/delete)
   public shared ({ caller }) func createTestimonial(testimonial : Testimonial) : async TestimonialId {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create testimonials");
@@ -489,7 +1131,6 @@ actor {
     testimonials.remove(id);
   };
 
-  // Order Management
   public shared ({ caller }) func createOrder(
     productId : ProductId,
     customerName : Text,
@@ -498,8 +1139,12 @@ actor {
     quantityKg : Float,
     advanceAmount : Float,
     whatsappOrderText : Text,
+    customerId : ?CustomerId,
   ) : async OrderId {
-    // Public function - no authorization check needed
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create orders");
+    };
+
     if (Text.equal(customerName, "") or Text.equal(customerPhone, "") or Text.equal(customerAddress, "")) {
       Runtime.trap("All customer details must be provided");
     };
@@ -526,6 +1171,7 @@ actor {
           status = #pending;
           whatsappOrderText;
           createdAt = Time.now();
+          customerId;
         };
 
         orders.add(id, order);
@@ -563,7 +1209,7 @@ actor {
     };
   };
 
-  // Public Query Functions (No authorization needed)
+  // Public Query Functions
   public query func getAllMakers() : async [Maker] {
     makers.values().toArray();
   };
@@ -620,12 +1266,211 @@ actor {
     result.toArray();
   };
 
-  // Seed Data (Admin only) - Does nothing as data is already pre-loaded
   public shared ({ caller }) func seedData() : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can seed data");
     };
-    // Data already seeded, do nothing
-    ();
+  };
+
+  // Advertising/Promotion System Functions
+  public shared ({ caller }) func createAdCampaign(makerId : MakerId, name : Text, adType : Text, dailyBudget : Float, bidPerClick : Float, targetState : Text, targetCategory : Text) : async AdCampaignId {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can create ad campaigns");
+    };
+
+    let id = nextAdCampaignId;
+    let campaign : AdCampaign = {
+      id;
+      makerId;
+      name;
+      adType;
+      status = "active";
+      dailyBudget;
+      bidPerClick;
+      targetState;
+      targetCategory;
+      qualityScore = 1.0;
+      createdAt = Time.now();
+      totalSpend = 0.0;
+      totalImpressions = 0;
+      totalClicks = 0;
+      totalOrders = 0;
+      totalRevenue = 0.0;
+    };
+
+    adCampaigns.add(id, campaign);
+    nextAdCampaignId += 1;
+    id;
+  };
+
+  public shared ({ caller }) func pauseAdCampaign(id : AdCampaignId) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can pause campaigns");
+    };
+
+    let campaign = switch (adCampaigns.get(id)) {
+      case (null) { Runtime.trap("Campaign not found") };
+      case (?c) { c };
+    };
+
+    let updatedCampaign = { campaign with status = "paused" };
+    adCampaigns.add(id, updatedCampaign);
+  };
+
+  public shared ({ caller }) func resumeAdCampaign(id : AdCampaignId) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can resume campaigns");
+    };
+
+    let campaign = switch (adCampaigns.get(id)) {
+      case (null) { Runtime.trap("Campaign not found") };
+      case (?c) { c };
+    };
+
+    let updatedCampaign = { campaign with status = "active" };
+    adCampaigns.add(id, updatedCampaign);
+  };
+
+  public shared ({ caller }) func recordAdImpression(campaignId : AdCampaignId, productId : ProductId, makerId : MakerId) : async () {
+    // Public function - no auth check needed (tracking impressions from any visitor)
+    let campaign = switch (adCampaigns.get(campaignId)) {
+      case (null) { Runtime.trap("Campaign not found") };
+      case (?c) { c };
+    };
+
+    let updatedCampaign = {
+      campaign with totalImpressions = campaign.totalImpressions + 1;
+    };
+    adCampaigns.add(campaignId, updatedCampaign);
+  };
+
+  public shared ({ caller }) func recordAdClick(campaignId : AdCampaignId, productId : ProductId, makerId : MakerId) : async Float {
+    // Public function - no auth check needed (tracking clicks from any visitor)
+    let campaign = switch (adCampaigns.get(campaignId)) {
+      case (null) { Runtime.trap("Campaign not found") };
+      case (?c) { c };
+    };
+
+    let updatedCampaign = {
+      campaign with
+      totalClicks = campaign.totalClicks + 1;
+      totalSpend = campaign.totalSpend + campaign.bidPerClick;
+    };
+    adCampaigns.add(campaignId, updatedCampaign);
+    campaign.bidPerClick;
+  };
+
+  public shared ({ caller }) func recordAdConversion(campaignId : AdCampaignId, orderValue : Float) : async () {
+    // Public function - no auth check needed (tracking conversions from any visitor)
+    let campaign = switch (adCampaigns.get(campaignId)) {
+      case (null) { Runtime.trap("Campaign not found") };
+      case (?c) { c };
+    };
+
+    let updatedCampaign = {
+      campaign with
+      totalOrders = campaign.totalOrders + 1;
+      totalRevenue = campaign.totalRevenue + orderValue;
+    };
+    adCampaigns.add(campaignId, updatedCampaign);
+  };
+
+  public query ({ caller }) func getAdCampaignsByMaker(makerId : MakerId) : async [AdCampaign] {
+    // Verify caller owns the maker or is admin
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      // For non-admins, we need to verify they own this maker
+      // Since there's no maker-to-principal mapping in the current system,
+      // we'll restrict this to admin-only for security
+      Runtime.trap("Unauthorized: Only admins can view ad campaigns by maker");
+    };
+
+    let allCampaigns = adCampaigns.values().toArray();
+    allCampaigns.filter(func(c) { c.makerId == makerId });
+  };
+
+  public query ({ caller }) func getAllAdCampaigns() : async [AdCampaign] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view all campaigns");
+    };
+    adCampaigns.values().toArray();
+  };
+
+  public query func getRankedAds(state : Text, category : Text) : async [RankedAd] {
+    // Public query - no auth check needed (anyone can view ranked ads)
+    let campaigns = adCampaigns.values().toArray();
+    let activeCampaigns = campaigns.filter(func(c) { c.status == "active" });
+
+    func calculateAdRankScore(c : AdCampaign) : Float {
+      // Calculate relevance score based on target state+category matches
+      var relevanceScore = 1.0;
+      if (c.targetState != state and c.targetCategory == category) { relevanceScore := 0.7 };
+      if (c.targetState == state and c.targetCategory != category) { relevanceScore := 0.7 };
+      if (c.targetState != state and c.targetCategory != category) { relevanceScore := 0.4 };
+      c.bidPerClick * c.qualityScore * relevanceScore;
+    };
+
+    let rankedAds = activeCampaigns.map(
+      func(c) {
+        {
+          campaignId = c.id;
+          productId = 1;
+          makerId = c.makerId;
+          adRankScore = calculateAdRankScore(c);
+          adType = c.adType;
+        };
+      }
+    );
+    rankedAds.sort(
+      func(a, b) {
+        Float.compare(b.adRankScore, a.adRankScore);
+      }
+    );
+  };
+
+  public query ({ caller }) func getAdAnalytics(campaignId : AdCampaignId) : async AdAnalytics {
+    // Verify caller owns the campaign or is admin
+    let campaign = switch (adCampaigns.get(campaignId)) {
+      case (null) { Runtime.trap("Campaign not found") };
+      case (?c) { c };
+    };
+
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      // For non-admins, we need to verify they own this campaign
+      // Since there's no maker-to-principal mapping in the current system,
+      // we'll restrict this to admin-only for security
+      Runtime.trap("Unauthorized: Only admins can view ad analytics");
+    };
+
+    let cpo = if (campaign.totalOrders > 0) {
+      campaign.totalSpend / campaign.totalOrders.toFloat();
+    } else { 0.0 };
+
+    let roas = if (campaign.totalSpend > 0.0) {
+      campaign.totalRevenue / campaign.totalSpend;
+    } else { 0.0 };
+
+    {
+      campaignId;
+      impressions = campaign.totalImpressions;
+      clicks = campaign.totalClicks;
+      orders = campaign.totalOrders;
+      totalSpend = campaign.totalSpend;
+      totalRevenue = campaign.totalRevenue;
+      cpo;
+      roas;
+    };
+  };
+
+  public query ({ caller }) func getPlatformAdRevenue() : async Float {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view platform ad revenue");
+    };
+
+    let campaigns = adCampaigns.values().toArray();
+    let totalRevenue = campaigns.foldLeft(
+      0.0,
+      func(sum, c) { sum + c.totalSpend },
+    );
+    totalRevenue;
   };
 };

@@ -1,4 +1,5 @@
 import HerStorySection from "@/components/HerStorySection";
+import ReviewsSection from "@/components/ReviewsSection";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -9,7 +10,7 @@ import {
 import { getMakerStory } from "@/constants/makerStories";
 import { useGetMakerWithProducts } from "@/hooks/useQueries";
 import { Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, MessageCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect } from "react";
 import { SiWhatsapp } from "react-icons/si";
@@ -121,7 +122,11 @@ export default function MakerDetailPage() {
               <h1 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-2">
                 {maker.name}
               </h1>
-              <p className="text-muted-foreground font-body text-sm">
+              <span className="inline-flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 text-xs px-2.5 py-1 rounded-full font-body font-semibold mb-3">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Verified Kitchen ✓
+              </span>
+              <p className="text-muted-foreground font-body text-sm mt-2">
                 {maker.bio}
               </p>
             </div>
@@ -260,6 +265,11 @@ export default function MakerDetailPage() {
           <HerStorySection story={story} makerName={maker.name} />
         ) : null;
       })()}
+
+      {/* ─── Maker Reviews ─── */}
+      <div className="container mx-auto px-4 sm:px-6 max-w-5xl pb-12">
+        <ReviewsSection makerName={maker.name} displayOnly />
+      </div>
     </main>
   );
 }

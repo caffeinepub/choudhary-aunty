@@ -8,10 +8,18 @@
  */
 
 import type { Maker, Product } from "../backend.d";
-import { SEED_MAKERS, SEED_PRODUCTS, type Season } from "./seedData";
+import {
+  type AvailabilityType,
+  SEED_MAKERS,
+  SEED_PRODUCTS,
+  type Season,
+} from "./seedData";
 
-// Extended product type with season (frontend-only field)
-export type LocalProduct = Product & { season?: Season };
+// Extended product type with season and availability (frontend-only fields)
+export type LocalProduct = Product & {
+  season?: Season;
+  availability?: AvailabilityType;
+};
 
 // Maker index → canonical backend-style ID mapping
 // (matches the IDs in main.mo preSeededMakers: 1=Anju, 2=Babita, 3=Sarla, 4=Preetkaur, 5=Geeta)
@@ -44,6 +52,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = SEED_PRODUCTS.map((p, idx) => ({
   category: p.category,
   state: p.state,
   season: p.season,
+  availability: p.availability,
   imageUrl: p.imageUrl,
   isAvailable: p.isAvailable,
 }));

@@ -1,32 +1,73 @@
-# Choudhary Aunty
+# Choudhary Aunty — Advertising & Promotion System
 
 ## Current State
-The website has a MakerDetailPage that shows maker profile (photo, bio, story quote, WhatsApp CTA) and product grid. The MakersPage has a grid of maker cards. There is no personal biographical backstory section on either page. The makers page cards link to `/maker/$id` but have no "Her Story" teaser.
+
+A fully built homemade regional food marketplace with:
+- 5 makers (Bihar, Haryana, Punjab, UP, Uttarakhand) with 10 products each
+- Customer login, CRM portal, loyalty program (Rishta Rewards / Asharfi points)
+- Maker Dashboard, Platform Dashboard, Admin panel
+- WhatsApp-based ordering with 50% advance UPI model
+- Authorization component (admin/user/guest roles)
+- Backend: Motoko with full product, order, customer, CRM campaign management
 
 ## Requested Changes (Diff)
 
 ### Add
-- `MAKER_STORIES` constant in `src/frontend/src/constants/makerStories.ts` — full biographical data for all 5 makers: DOB, birthPlace, marriedYear, presentLocation, childhoodStory, marriageStruggles, whySheJoined, herDream, fiveBestDishes
-- Nostalgic "Her Story" section at the bottom of MakerDetailPage, rendered as a visual timeline / old-photo-album with sepia/earth tones, handwritten-style font moments, aged paper texture backgrounds, marigold accent details
-- Story section components: LifeMarkers strip (DOB, birthPlace, married, location), PersonalStoryTimeline (childhood → marriage → struggle → why joined → dream), HerDream closing card
-- "Meet Her Story" teaser card/link on maker cards in MakersPage grid
-- Story teaser strip on the homepage Featured Makers section
+
+**Backend:**
+- `AdCampaign` type: id, makerId, name, adType, status, dailyBudget, bidPerClick, startDate, endDate, targetState, targetCategory, qualityScore, createdAt, totalSpend, totalImpressions, totalClicks, totalOrders, totalRevenue
+- `AdType` variant: `#sponsoredDish | #featuredChef | #categoryPromotion | #cityPromotion`
+- `AdBid` type: id, campaignId, productId, bidAmount, adRankScore (= bidAmount × qualityScore × relevanceScore), timestamp
+- `AdImpression` type: id, campaignId, productId, makerId, timestamp, converted (Bool)
+- `AdClick` type: id, campaignId, productId, makerId, timestamp, costCharged, convertedToOrder (Bool)
+- Backend functions:
+  - `createAdCampaign(makerId, name, adType, dailyBudget, bidPerClick, targetState, targetCategory)` → CampaignId
+  - `updateAdCampaign(campaign)` → ()
+  - `pauseAdCampaign(id)` / `resumeAdCampaign(id)` → ()
+  - `recordAdImpression(campaignId, productId)` → ()
+  - `recordAdClick(campaignId, productId)` → Float (cost charged)
+  - `recordAdConversion(campaignId, productId, orderValue)` → ()
+  - `getAdCampaignsByMaker(makerId)` → [AdCampaign]
+  - `getAllAdCampaigns()` → [AdCampaign] (admin only)
+  - `getRankedAds(state, category)` → [AdBid] sorted by ad_rank_score desc (public)
+  - `getAdAnalytics(campaignId)` → AdAnalytics record
+  - `getPlatformAdRevenue()` → Float (admin only)
+- Ad rank formula: `adRankScore = bidAmount × qualityScore × relevanceScore`
+- qualityScore seeded at 0.8 (adjustable), relevanceScore computed from state/category match
+
+**Frontend pages:**
+- `/ads` — Chef Ads Manager: create/manage campaigns, choose ad type, set budget and bid
+- `/ads/new` — New Campaign form
+- `/ads/[id]` — Campaign detail with analytics (impressions, clicks, orders, CPO, ROAS)
+- `/platform-dashboard` — Add "Ad Revenue" KPI card and ads performance section
+
+**Frontend integrations:**
+- Shop page: sponsored dish cards visually marked (gold "Sponsored" badge), ranked higher in results
+- Home page: "Featured Chef" section pulls from active featuredChef ad campaigns
+- Shop page category view: "Category Promotion" pins appear at top of category
+- Shop page state view: "City Promotion" pins appear at top of state section
+- Navbar "More" menu: add "Advertise" link pointing to `/ads`
 
 ### Modify
-- MakerDetailPage: append the HerStorySection below the products grid
-- MakersPage maker cards: add a "Read Her Story" link below the existing "Meet X" link
-- Homepage maker cards: add small story teaser line and "Her Story" link
+
+- `MakerDashboardPage.tsx` — add "My Ads" tab linking to `/ads` and showing summary stats (total spend, ROAS)
+- `PlatformDashboardPage.tsx` — add "Ad Revenue" KPI and ad performance table
+- `ShopPage.tsx` — integrate getRankedAds result to reorder and badge sponsored products
+- `HomePage.tsx` — Featured Chef section pulls active featured chef ad data
 
 ### Remove
-- Nothing removed
+
+Nothing removed.
 
 ## Implementation Plan
-1. Create `src/frontend/src/constants/makerStories.ts` with full biographical data for all 5 makers
-2. Generate nostalgic story images (sepia portrait style, village kitchen scene, marigold texture)
-3. Build `HerStorySection` component in MakerDetailPage with:
-   - Aged paper/sepia visual style using CSS via inline styles or Tailwind arbitrary values
-   - LifeMarkers: horizontal row of date/place badges with hand-drawn-style icons
-   - PersonalStoryTimeline: vertical timeline cards for each life chapter
-   - HerDreamCard: closing emotional card with quote and dream statement
-4. Update MakersPage cards to show "Read Her Story" teaser link
-5. Update HomePage featured makers section to include story teaser
+
+1. Extend Motoko backend with AdCampaign, AdBid, AdImpression, AdClick types and all ad management functions
+2. Regenerate backend.d.ts bindings
+3. Build `/ads` Chef Campaign Dashboard: campaign list, status toggles, performance summary cards
+4. Build `/ads/new` Create Campaign form: ad type selector, budget, bid, targeting (state/category)
+5. Build `/ads/[id]` Campaign Analytics: impressions, clicks, orders, CPO, ROAS charts
+6. Integrate sponsored ranking into ShopPage product list (call getRankedAds, reorder, badge)
+7. Integrate Featured Chef ads into HomePage featured section
+8. Add Ad Revenue KPI to PlatformDashboardPage
+9. Add "My Ads" tab/card to MakerDashboardPage
+10. Add "Advertise" to navbar More menu

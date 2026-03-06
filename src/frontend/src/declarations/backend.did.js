@@ -8,12 +8,19 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const CustomerId = IDL.Nat;
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const Time = IDL.Int;
+export const BookingId = IDL.Nat;
+export const ReserveOrderId = IDL.Nat;
+export const OrderId = IDL.Nat;
 export const MakerId = IDL.Nat;
+export const AdCampaignId = IDL.Nat;
+export const CampaignId = IDL.Nat;
 export const Maker = IDL.Record({
   'id' : MakerId,
   'bio' : IDL.Text,
@@ -25,7 +32,7 @@ export const Maker = IDL.Record({
   'story' : IDL.Text,
 });
 export const ProductId = IDL.Nat;
-export const OrderId = IDL.Nat;
+export const OrderItemId = IDL.Nat;
 export const Product = IDL.Record({
   'id' : ProductId,
   'mrp' : IDL.Float64,
@@ -43,7 +50,6 @@ export const Product = IDL.Record({
   'ingredients' : IDL.Vec(IDL.Text),
 });
 export const TestimonialId = IDL.Nat;
-export const Time = IDL.Int;
 export const Testimonial = IDL.Record({
   'id' : TestimonialId,
   'customerName' : IDL.Text,
@@ -51,6 +57,61 @@ export const Testimonial = IDL.Record({
   'message' : IDL.Text,
   'rating' : IDL.Nat,
   'location' : IDL.Text,
+});
+export const AdAnalytics = IDL.Record({
+  'cpo' : IDL.Float64,
+  'clicks' : IDL.Nat,
+  'orders' : IDL.Nat,
+  'roas' : IDL.Float64,
+  'campaignId' : AdCampaignId,
+  'impressions' : IDL.Nat,
+  'totalSpend' : IDL.Float64,
+  'totalRevenue' : IDL.Float64,
+});
+export const AdCampaign = IDL.Record({
+  'id' : AdCampaignId,
+  'status' : IDL.Text,
+  'totalOrders' : IDL.Nat,
+  'targetState' : IDL.Text,
+  'name' : IDL.Text,
+  'createdAt' : Time,
+  'bidPerClick' : IDL.Float64,
+  'makerId' : MakerId,
+  'totalImpressions' : IDL.Nat,
+  'qualityScore' : IDL.Float64,
+  'dailyBudget' : IDL.Float64,
+  'totalSpend' : IDL.Float64,
+  'adType' : IDL.Text,
+  'targetCategory' : IDL.Text,
+  'totalRevenue' : IDL.Float64,
+  'totalClicks' : IDL.Nat,
+});
+export const CrmCampaign = IDL.Record({
+  'id' : CampaignId,
+  'status' : IDL.Text,
+  'name' : IDL.Text,
+  'createdAt' : Time,
+  'sentCount' : IDL.Nat,
+  'triggerType' : IDL.Text,
+  'channel' : IDL.Text,
+  'targetSegment' : IDL.Text,
+});
+export const CustomerAccount = IDL.Record({
+  'id' : CustomerId,
+  'oilPreference' : IDL.Text,
+  'principal' : IDL.Principal,
+  'asharfiPoints' : IDL.Nat,
+  'signupDate' : Time,
+  'city' : IDL.Text,
+  'name' : IDL.Text,
+  'spicePreference' : IDL.Text,
+  'email' : IDL.Text,
+  'state' : IDL.Text,
+  'sweetnessPreference' : IDL.Text,
+  'regionPreference' : IDL.Text,
+  'phone' : IDL.Text,
+  'dietType' : IDL.Text,
+  'lifecycleStage' : IDL.Text,
 });
 export const OrderStatus = IDL.Variant({
   'preparing' : IDL.Null,
@@ -71,18 +132,77 @@ export const Order = IDL.Record({
   'customerAddress' : IDL.Text,
   'advanceAmount' : IDL.Float64,
   'totalAmount' : IDL.Float64,
+  'customerId' : IDL.Opt(CustomerId),
   'quantityKg' : IDL.Float64,
+});
+export const BusBookingStats = IDL.Record({
+  'toCityCounts' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
+  'totalBookings' : IDL.Nat,
+  'fromCityCounts' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
 });
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'address' : IDL.Text,
   'phone' : IDL.Text,
 });
+export const CrmStats = IDL.Record({
+  'loyalCustomers' : IDL.Nat,
+  'totalOrders' : IDL.Nat,
+  'newCustomers' : IDL.Nat,
+  'totalRevenue' : IDL.Float64,
+  'totalCustomers' : IDL.Nat,
+  'atRiskCustomers' : IDL.Nat,
+  'avgOrderValue' : IDL.Float64,
+});
+export const OrderItem = IDL.Record({
+  'id' : OrderItemId,
+  'oilLevel' : IDL.Text,
+  'customerPrincipal' : IDL.Opt(IDL.Principal),
+  'saltLevel' : IDL.Text,
+  'productId' : ProductId,
+  'orderId' : OrderId,
+  'portionSize' : IDL.Text,
+  'spiceLevel' : IDL.Text,
+  'quantity' : IDL.Float64,
+  'sweetnessLevel' : IDL.Text,
+});
+export const RankedAd = IDL.Record({
+  'campaignId' : AdCampaignId,
+  'makerId' : MakerId,
+  'productId' : ProductId,
+  'adType' : IDL.Text,
+  'adRankScore' : IDL.Float64,
+});
 export const StateCount = IDL.Record({ 'count' : IDL.Nat, 'state' : IDL.Text });
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addAsharfiPoints' : IDL.Func([CustomerId, IDL.Nat], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'bookBus' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, Time, IDL.Nat],
+      [BookingId],
+      [],
+    ),
+  'convertReserveToOrder' : IDL.Func([ReserveOrderId], [OrderId], []),
+  'createAdCampaign' : IDL.Func(
+      [
+        MakerId,
+        IDL.Text,
+        IDL.Text,
+        IDL.Float64,
+        IDL.Float64,
+        IDL.Text,
+        IDL.Text,
+      ],
+      [AdCampaignId],
+      [],
+    ),
+  'createCampaign' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [CampaignId],
+      [],
+    ),
   'createMaker' : IDL.Func([Maker], [MakerId], []),
   'createOrder' : IDL.Func(
       [
@@ -93,8 +213,23 @@ export const idlService = IDL.Service({
         IDL.Float64,
         IDL.Float64,
         IDL.Text,
+        IDL.Opt(CustomerId),
       ],
       [OrderId],
+      [],
+    ),
+  'createOrderItem' : IDL.Func(
+      [
+        OrderId,
+        ProductId,
+        IDL.Float64,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+      ],
+      [OrderItemId],
       [],
     ),
   'createProduct' : IDL.Func([Product], [ProductId], []),
@@ -102,22 +237,48 @@ export const idlService = IDL.Service({
   'deleteMaker' : IDL.Func([MakerId], [], []),
   'deleteProduct' : IDL.Func([ProductId], [], []),
   'deleteTestimonial' : IDL.Func([TestimonialId], [], []),
+  'getAdAnalytics' : IDL.Func([AdCampaignId], [AdAnalytics], ['query']),
+  'getAdCampaignsByMaker' : IDL.Func(
+      [MakerId],
+      [IDL.Vec(AdCampaign)],
+      ['query'],
+    ),
+  'getAllAdCampaigns' : IDL.Func([], [IDL.Vec(AdCampaign)], ['query']),
+  'getAllCampaigns' : IDL.Func([], [IDL.Vec(CrmCampaign)], ['query']),
+  'getAllCustomers' : IDL.Func([], [IDL.Vec(CustomerAccount)], ['query']),
   'getAllMakers' : IDL.Func([], [IDL.Vec(Maker)], ['query']),
   'getAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
   'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
   'getAllTestimonials' : IDL.Func([], [IDL.Vec(Testimonial)], ['query']),
+  'getBusBookingStats' : IDL.Func([], [BusBookingStats], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getCrmStats' : IDL.Func([], [CrmStats], ['query']),
+  'getCustomerById' : IDL.Func(
+      [CustomerId],
+      [IDL.Opt(CustomerAccount)],
+      ['query'],
+    ),
   'getMakerWithProducts' : IDL.Func(
       [MakerId],
       [IDL.Opt(IDL.Tuple(Maker, IDL.Vec(Product)))],
       ['query'],
     ),
   'getMakersByState' : IDL.Func([IDL.Text], [IDL.Vec(Maker)], ['query']),
+  'getMyAccount' : IDL.Func([], [IDL.Opt(CustomerAccount)], ['query']),
+  'getMyOrderItems' : IDL.Func([], [IDL.Vec(OrderItem)], ['query']),
+  'getMyOrders' : IDL.Func([IDL.Text], [IDL.Vec(Order)], ['query']),
   'getOrderById' : IDL.Func([OrderId], [IDL.Opt(Order)], ['query']),
+  'getOrderItemsByOrder' : IDL.Func([OrderId], [IDL.Vec(OrderItem)], ['query']),
+  'getPlatformAdRevenue' : IDL.Func([], [IDL.Float64], ['query']),
   'getProductById' : IDL.Func([ProductId], [IDL.Opt(Product)], ['query']),
   'getProductsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Product)], ['query']),
   'getProductsByState' : IDL.Func([IDL.Text], [IDL.Vec(Product)], ['query']),
+  'getRankedAds' : IDL.Func(
+      [IDL.Text, IDL.Text],
+      [IDL.Vec(RankedAd)],
+      ['query'],
+    ),
   'getStatesListWithProductCounts' : IDL.Func(
       [],
       [IDL.Vec(StateCount)],
@@ -129,9 +290,55 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'pauseAdCampaign' : IDL.Func([AdCampaignId], [], []),
+  'recordAdClick' : IDL.Func(
+      [AdCampaignId, ProductId, MakerId],
+      [IDL.Float64],
+      [],
+    ),
+  'recordAdConversion' : IDL.Func([AdCampaignId, IDL.Float64], [], []),
+  'recordAdImpression' : IDL.Func([AdCampaignId, ProductId, MakerId], [], []),
+  'recordCustomerEvent' : IDL.Func([CustomerId, IDL.Text, ProductId], [], []),
+  'registerCustomer' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [CustomerAccount],
+      [],
+    ),
+  'reserveProduct' : IDL.Func(
+      [
+        ProductId,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Float64,
+        IDL.Float64,
+        IDL.Text,
+        IDL.Opt(CustomerId),
+      ],
+      [ReserveOrderId],
+      [],
+    ),
+  'resumeAdCampaign' : IDL.Func([AdCampaignId], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'seedData' : IDL.Func([], [], []),
+  'updateCampaignStatus' : IDL.Func([CampaignId, IDL.Text], [], []),
   'updateMaker' : IDL.Func([Maker], [], []),
+  'updateMyAccount' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+      ],
+      [],
+      [],
+    ),
   'updateOrderStatus' : IDL.Func([OrderId, OrderStatus], [], []),
   'updateProduct' : IDL.Func([Product], [], []),
   'updateTestimonial' : IDL.Func([Testimonial], [], []),
@@ -140,12 +347,19 @@ export const idlService = IDL.Service({
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const CustomerId = IDL.Nat;
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
+  const Time = IDL.Int;
+  const BookingId = IDL.Nat;
+  const ReserveOrderId = IDL.Nat;
+  const OrderId = IDL.Nat;
   const MakerId = IDL.Nat;
+  const AdCampaignId = IDL.Nat;
+  const CampaignId = IDL.Nat;
   const Maker = IDL.Record({
     'id' : MakerId,
     'bio' : IDL.Text,
@@ -157,7 +371,7 @@ export const idlFactory = ({ IDL }) => {
     'story' : IDL.Text,
   });
   const ProductId = IDL.Nat;
-  const OrderId = IDL.Nat;
+  const OrderItemId = IDL.Nat;
   const Product = IDL.Record({
     'id' : ProductId,
     'mrp' : IDL.Float64,
@@ -175,7 +389,6 @@ export const idlFactory = ({ IDL }) => {
     'ingredients' : IDL.Vec(IDL.Text),
   });
   const TestimonialId = IDL.Nat;
-  const Time = IDL.Int;
   const Testimonial = IDL.Record({
     'id' : TestimonialId,
     'customerName' : IDL.Text,
@@ -183,6 +396,61 @@ export const idlFactory = ({ IDL }) => {
     'message' : IDL.Text,
     'rating' : IDL.Nat,
     'location' : IDL.Text,
+  });
+  const AdAnalytics = IDL.Record({
+    'cpo' : IDL.Float64,
+    'clicks' : IDL.Nat,
+    'orders' : IDL.Nat,
+    'roas' : IDL.Float64,
+    'campaignId' : AdCampaignId,
+    'impressions' : IDL.Nat,
+    'totalSpend' : IDL.Float64,
+    'totalRevenue' : IDL.Float64,
+  });
+  const AdCampaign = IDL.Record({
+    'id' : AdCampaignId,
+    'status' : IDL.Text,
+    'totalOrders' : IDL.Nat,
+    'targetState' : IDL.Text,
+    'name' : IDL.Text,
+    'createdAt' : Time,
+    'bidPerClick' : IDL.Float64,
+    'makerId' : MakerId,
+    'totalImpressions' : IDL.Nat,
+    'qualityScore' : IDL.Float64,
+    'dailyBudget' : IDL.Float64,
+    'totalSpend' : IDL.Float64,
+    'adType' : IDL.Text,
+    'targetCategory' : IDL.Text,
+    'totalRevenue' : IDL.Float64,
+    'totalClicks' : IDL.Nat,
+  });
+  const CrmCampaign = IDL.Record({
+    'id' : CampaignId,
+    'status' : IDL.Text,
+    'name' : IDL.Text,
+    'createdAt' : Time,
+    'sentCount' : IDL.Nat,
+    'triggerType' : IDL.Text,
+    'channel' : IDL.Text,
+    'targetSegment' : IDL.Text,
+  });
+  const CustomerAccount = IDL.Record({
+    'id' : CustomerId,
+    'oilPreference' : IDL.Text,
+    'principal' : IDL.Principal,
+    'asharfiPoints' : IDL.Nat,
+    'signupDate' : Time,
+    'city' : IDL.Text,
+    'name' : IDL.Text,
+    'spicePreference' : IDL.Text,
+    'email' : IDL.Text,
+    'state' : IDL.Text,
+    'sweetnessPreference' : IDL.Text,
+    'regionPreference' : IDL.Text,
+    'phone' : IDL.Text,
+    'dietType' : IDL.Text,
+    'lifecycleStage' : IDL.Text,
   });
   const OrderStatus = IDL.Variant({
     'preparing' : IDL.Null,
@@ -203,18 +471,77 @@ export const idlFactory = ({ IDL }) => {
     'customerAddress' : IDL.Text,
     'advanceAmount' : IDL.Float64,
     'totalAmount' : IDL.Float64,
+    'customerId' : IDL.Opt(CustomerId),
     'quantityKg' : IDL.Float64,
+  });
+  const BusBookingStats = IDL.Record({
+    'toCityCounts' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
+    'totalBookings' : IDL.Nat,
+    'fromCityCounts' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
   });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
     'address' : IDL.Text,
     'phone' : IDL.Text,
   });
+  const CrmStats = IDL.Record({
+    'loyalCustomers' : IDL.Nat,
+    'totalOrders' : IDL.Nat,
+    'newCustomers' : IDL.Nat,
+    'totalRevenue' : IDL.Float64,
+    'totalCustomers' : IDL.Nat,
+    'atRiskCustomers' : IDL.Nat,
+    'avgOrderValue' : IDL.Float64,
+  });
+  const OrderItem = IDL.Record({
+    'id' : OrderItemId,
+    'oilLevel' : IDL.Text,
+    'customerPrincipal' : IDL.Opt(IDL.Principal),
+    'saltLevel' : IDL.Text,
+    'productId' : ProductId,
+    'orderId' : OrderId,
+    'portionSize' : IDL.Text,
+    'spiceLevel' : IDL.Text,
+    'quantity' : IDL.Float64,
+    'sweetnessLevel' : IDL.Text,
+  });
+  const RankedAd = IDL.Record({
+    'campaignId' : AdCampaignId,
+    'makerId' : MakerId,
+    'productId' : ProductId,
+    'adType' : IDL.Text,
+    'adRankScore' : IDL.Float64,
+  });
   const StateCount = IDL.Record({ 'count' : IDL.Nat, 'state' : IDL.Text });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addAsharfiPoints' : IDL.Func([CustomerId, IDL.Nat], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'bookBus' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, Time, IDL.Nat],
+        [BookingId],
+        [],
+      ),
+    'convertReserveToOrder' : IDL.Func([ReserveOrderId], [OrderId], []),
+    'createAdCampaign' : IDL.Func(
+        [
+          MakerId,
+          IDL.Text,
+          IDL.Text,
+          IDL.Float64,
+          IDL.Float64,
+          IDL.Text,
+          IDL.Text,
+        ],
+        [AdCampaignId],
+        [],
+      ),
+    'createCampaign' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [CampaignId],
+        [],
+      ),
     'createMaker' : IDL.Func([Maker], [MakerId], []),
     'createOrder' : IDL.Func(
         [
@@ -225,8 +552,23 @@ export const idlFactory = ({ IDL }) => {
           IDL.Float64,
           IDL.Float64,
           IDL.Text,
+          IDL.Opt(CustomerId),
         ],
         [OrderId],
+        [],
+      ),
+    'createOrderItem' : IDL.Func(
+        [
+          OrderId,
+          ProductId,
+          IDL.Float64,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+        ],
+        [OrderItemId],
         [],
       ),
     'createProduct' : IDL.Func([Product], [ProductId], []),
@@ -234,19 +576,44 @@ export const idlFactory = ({ IDL }) => {
     'deleteMaker' : IDL.Func([MakerId], [], []),
     'deleteProduct' : IDL.Func([ProductId], [], []),
     'deleteTestimonial' : IDL.Func([TestimonialId], [], []),
+    'getAdAnalytics' : IDL.Func([AdCampaignId], [AdAnalytics], ['query']),
+    'getAdCampaignsByMaker' : IDL.Func(
+        [MakerId],
+        [IDL.Vec(AdCampaign)],
+        ['query'],
+      ),
+    'getAllAdCampaigns' : IDL.Func([], [IDL.Vec(AdCampaign)], ['query']),
+    'getAllCampaigns' : IDL.Func([], [IDL.Vec(CrmCampaign)], ['query']),
+    'getAllCustomers' : IDL.Func([], [IDL.Vec(CustomerAccount)], ['query']),
     'getAllMakers' : IDL.Func([], [IDL.Vec(Maker)], ['query']),
     'getAllOrders' : IDL.Func([], [IDL.Vec(Order)], ['query']),
     'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
     'getAllTestimonials' : IDL.Func([], [IDL.Vec(Testimonial)], ['query']),
+    'getBusBookingStats' : IDL.Func([], [BusBookingStats], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getCrmStats' : IDL.Func([], [CrmStats], ['query']),
+    'getCustomerById' : IDL.Func(
+        [CustomerId],
+        [IDL.Opt(CustomerAccount)],
+        ['query'],
+      ),
     'getMakerWithProducts' : IDL.Func(
         [MakerId],
         [IDL.Opt(IDL.Tuple(Maker, IDL.Vec(Product)))],
         ['query'],
       ),
     'getMakersByState' : IDL.Func([IDL.Text], [IDL.Vec(Maker)], ['query']),
+    'getMyAccount' : IDL.Func([], [IDL.Opt(CustomerAccount)], ['query']),
+    'getMyOrderItems' : IDL.Func([], [IDL.Vec(OrderItem)], ['query']),
+    'getMyOrders' : IDL.Func([IDL.Text], [IDL.Vec(Order)], ['query']),
     'getOrderById' : IDL.Func([OrderId], [IDL.Opt(Order)], ['query']),
+    'getOrderItemsByOrder' : IDL.Func(
+        [OrderId],
+        [IDL.Vec(OrderItem)],
+        ['query'],
+      ),
+    'getPlatformAdRevenue' : IDL.Func([], [IDL.Float64], ['query']),
     'getProductById' : IDL.Func([ProductId], [IDL.Opt(Product)], ['query']),
     'getProductsByCategory' : IDL.Func(
         [IDL.Text],
@@ -254,6 +621,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getProductsByState' : IDL.Func([IDL.Text], [IDL.Vec(Product)], ['query']),
+    'getRankedAds' : IDL.Func(
+        [IDL.Text, IDL.Text],
+        [IDL.Vec(RankedAd)],
+        ['query'],
+      ),
     'getStatesListWithProductCounts' : IDL.Func(
         [],
         [IDL.Vec(StateCount)],
@@ -265,9 +637,55 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'pauseAdCampaign' : IDL.Func([AdCampaignId], [], []),
+    'recordAdClick' : IDL.Func(
+        [AdCampaignId, ProductId, MakerId],
+        [IDL.Float64],
+        [],
+      ),
+    'recordAdConversion' : IDL.Func([AdCampaignId, IDL.Float64], [], []),
+    'recordAdImpression' : IDL.Func([AdCampaignId, ProductId, MakerId], [], []),
+    'recordCustomerEvent' : IDL.Func([CustomerId, IDL.Text, ProductId], [], []),
+    'registerCustomer' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [CustomerAccount],
+        [],
+      ),
+    'reserveProduct' : IDL.Func(
+        [
+          ProductId,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Float64,
+          IDL.Float64,
+          IDL.Text,
+          IDL.Opt(CustomerId),
+        ],
+        [ReserveOrderId],
+        [],
+      ),
+    'resumeAdCampaign' : IDL.Func([AdCampaignId], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'seedData' : IDL.Func([], [], []),
+    'updateCampaignStatus' : IDL.Func([CampaignId, IDL.Text], [], []),
     'updateMaker' : IDL.Func([Maker], [], []),
+    'updateMyAccount' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+        ],
+        [],
+        [],
+      ),
     'updateOrderStatus' : IDL.Func([OrderId, OrderStatus], [], []),
     'updateProduct' : IDL.Func([Product], [], []),
     'updateTestimonial' : IDL.Func([Testimonial], [], []),
