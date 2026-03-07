@@ -259,6 +259,67 @@ export function ImageManifest() {
         alt=""
       />
       <img src="/assets/generated/story-young-sarla.dim_600x700.jpg" alt="" />
+      {/* New product images */}
+      <img src="/assets/generated/product-laai-bihar.dim_800x600.jpg" alt="" />
+      <img
+        src="/assets/generated/product-anarsa-bihar.dim_800x600.jpg"
+        alt=""
+      />
+      <img
+        src="/assets/generated/product-petha-agra-up.dim_800x600.jpg"
+        alt=""
+      />
+      <img
+        src="/assets/generated/product-bal-mithai-uttarakhand.dim_800x600.jpg"
+        alt=""
+      />
+      <img
+        src="/assets/generated/product-pinni-punjab.dim_800x600.jpg"
+        alt=""
+      />
+      <img
+        src="/assets/generated/product-besan-halwa-punjab.dim_800x600.jpg"
+        alt=""
+      />
+      {/* Category gallery images - ingredients */}
+      <img
+        src="/assets/generated/gallery-ingredients-achar.dim_800x600.jpg"
+        alt=""
+      />
+      <img
+        src="/assets/generated/gallery-ingredients-sweets.dim_800x600.jpg"
+        alt=""
+      />
+      <img
+        src="/assets/generated/gallery-ingredients-namkeen.dim_800x600.jpg"
+        alt=""
+      />
+      <img
+        src="/assets/generated/gallery-ingredients-chutney.dim_800x600.jpg"
+        alt=""
+      />
+      {/* Category gallery images - preparation */}
+      <img
+        src="/assets/generated/gallery-preparation-achar.dim_800x600.jpg"
+        alt=""
+      />
+      <img
+        src="/assets/generated/gallery-preparation-sweets.dim_800x600.jpg"
+        alt=""
+      />
+      <img
+        src="/assets/generated/gallery-preparation-namkeen.dim_800x600.jpg"
+        alt=""
+      />
+      <img
+        src="/assets/generated/gallery-preparation-pahadi.dim_800x600.jpg"
+        alt=""
+      />
+      {/* USP gallery */}
+      <img
+        src="/assets/generated/gallery-usp-homemade-vs-factory.dim_800x600.jpg"
+        alt=""
+      />
       {/* Uploaded images */}
       <img
         src="/assets/uploads/ChatGPT-Image-Mar-5-2026-01_03_13-PM-1.png"

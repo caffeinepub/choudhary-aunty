@@ -7,15 +7,16 @@ export const MAKER_IMAGES: Record<string, string> = {
 };
 
 export const PRODUCT_IMAGES: Record<string, string> = {
+  // Category defaults
   achar: "/assets/generated/product-achar.dim_600x500.jpg",
   pickle: "/assets/generated/product-mixed-veg-pickle.dim_800x600.jpg",
   sweets: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
   ladoo: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
-  namkeen: "/assets/generated/product-namakpara.dim_600x500.jpg",
-  snacks: "/assets/generated/product-namakpara.dim_600x500.jpg",
+  namkeen: "/assets/generated/product-makhana-namkeen-bihar.dim_800x600.jpg",
+  snacks: "/assets/generated/product-mathri-haryana.dim_800x600.jpg",
   namakpara: "/assets/generated/product-namakpara.dim_600x500.jpg",
   chutney:
-    "/assets/generated/product-buransh-syrup-uttarakhand.dim_800x600.jpg",
+    "/assets/generated/product-gahat-chutney-uttarakhand.dim_800x600.jpg",
   murabba: "/assets/generated/product-murabba-up.dim_800x600.jpg",
   halwa: "/assets/generated/product-moong-halwa-haryana.dim_800x600.jpg",
   barfi: "/assets/generated/product-singhara-barfi-bihar.dim_800x600.jpg",
@@ -29,37 +30,39 @@ export const PRODUCT_IMAGES: Record<string, string> = {
   singhara: "/assets/generated/product-singhara-barfi-bihar.dim_800x600.jpg",
   sattu: "/assets/generated/product-sattu-ladoo-bihar.dim_800x600.jpg",
   chana: "/assets/generated/product-chana-jor-bihar.dim_800x600.jpg",
-  laai: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
-  anarsa: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
+  laai: "/assets/generated/product-laai-bihar.dim_800x600.jpg",
+  anarsa: "/assets/generated/product-anarsa-bihar.dim_800x600.jpg",
   // Haryana specific
   churma: "/assets/generated/product-churma-ladoo-haryana.dim_800x600.jpg",
   bajra: "/assets/generated/product-bajra-ladoo-haryana.dim_800x600.jpg",
   kachri: "/assets/generated/product-kachri-chutney-haryana.dim_800x600.jpg",
   singri: "/assets/generated/product-singri-haryana.dim_800x600.jpg",
   moong: "/assets/generated/product-moong-halwa-haryana.dim_800x600.jpg",
-  mathri: "/assets/generated/product-namakpara.dim_600x500.jpg",
-  mathri2: "/assets/generated/product-namakpara.dim_600x500.jpg",
+  mathri: "/assets/generated/product-mathri-haryana.dim_800x600.jpg",
   gajar: "/assets/generated/product-gajar-halwa-up.dim_800x600.jpg",
   // Punjab specific
   gajak: "/assets/generated/product-gajak-punjab.dim_800x600.jpg",
-  pinni: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
+  pinni: "/assets/generated/product-pinni-punjab.dim_800x600.jpg",
   wadi: "/assets/generated/product-wadi-punjab.dim_800x600.jpg",
   papad: "/assets/generated/product-papad-punjab.dim_800x600.jpg",
   aampapad: "/assets/generated/product-aam-papad-punjab.dim_800x600.jpg",
   chunda: "/assets/generated/product-mango-chunda-punjab.dim_800x600.jpg",
   saag: "/assets/generated/product-saag-masala-punjab.dim_800x600.jpg",
+  besan: "/assets/generated/product-besan-ladoo-up.dim_800x600.jpg",
+  besanhalwa: "/assets/generated/product-besan-halwa-punjab.dim_800x600.jpg",
   // UP specific
-  petha: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
+  petha: "/assets/generated/product-petha-agra-up.dim_800x600.jpg",
   peda: "/assets/generated/product-peda-up.dim_800x600.jpg",
   murabba2: "/assets/generated/product-murabba-up.dim_800x600.jpg",
   kachori: "/assets/generated/product-namakpara.dim_600x500.jpg",
   kanji: "/assets/generated/product-kanji-up.dim_800x600.jpg",
-  besan: "/assets/generated/product-besan-ladoo-up.dim_800x600.jpg",
+  aloo: "/assets/generated/product-aloo-achar-up.dim_800x600.jpg",
+  namakpare: "/assets/generated/product-namakpara.dim_600x500.jpg",
   // Uttarakhand specific
   buransh:
     "/assets/generated/product-buransh-syrup-uttarakhand.dim_800x600.jpg",
   bhang: "/assets/generated/product-gahat-chutney-uttarakhand.dim_800x600.jpg",
-  bal: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
+  bal: "/assets/generated/product-bal-mithai-uttarakhand.dim_800x600.jpg",
   jhangora:
     "/assets/generated/product-jhangora-kheer-uttarakhand.dim_800x600.jpg",
   gahat: "/assets/generated/product-gahat-chutney-uttarakhand.dim_800x600.jpg",
@@ -69,14 +72,100 @@ export const PRODUCT_IMAGES: Record<string, string> = {
   kafal: "/assets/generated/product-buransh-syrup-uttarakhand.dim_800x600.jpg",
 };
 
-export const PRODUCT_GALLERY_IMAGES = {
-  ingredients: "/assets/generated/product-ingredients-achar.dim_800x600.jpg",
-  preparation:
-    "/assets/generated/product-preparation-namakpara.dim_800x600.jpg",
+export interface ProductGalleryImages {
+  ingredients: string;
+  preparation: string;
+  uspVsFactory: string;
+  meetMaker: string;
+}
+
+// Per-category gallery images (ingredients + preparation panels)
+const GALLERY_IMAGES_BY_CATEGORY: Record<
+  string,
+  Partial<ProductGalleryImages>
+> = {
+  achar: {
+    ingredients: "/assets/generated/gallery-ingredients-achar.dim_800x600.jpg",
+    preparation: "/assets/generated/gallery-preparation-achar.dim_800x600.jpg",
+  },
+  sweets: {
+    ingredients: "/assets/generated/gallery-ingredients-sweets.dim_800x600.jpg",
+    preparation: "/assets/generated/gallery-preparation-sweets.dim_800x600.jpg",
+  },
+  ladoo: {
+    ingredients: "/assets/generated/gallery-ingredients-sweets.dim_800x600.jpg",
+    preparation: "/assets/generated/gallery-preparation-sweets.dim_800x600.jpg",
+  },
+  barfi: {
+    ingredients: "/assets/generated/gallery-ingredients-sweets.dim_800x600.jpg",
+    preparation: "/assets/generated/gallery-preparation-sweets.dim_800x600.jpg",
+  },
+  halwa: {
+    ingredients: "/assets/generated/gallery-ingredients-sweets.dim_800x600.jpg",
+    preparation: "/assets/generated/gallery-preparation-sweets.dim_800x600.jpg",
+  },
+  murabba: {
+    ingredients: "/assets/generated/gallery-ingredients-achar.dim_800x600.jpg",
+    preparation: "/assets/generated/gallery-preparation-achar.dim_800x600.jpg",
+  },
+  namkeen: {
+    ingredients:
+      "/assets/generated/gallery-ingredients-namkeen.dim_800x600.jpg",
+    preparation:
+      "/assets/generated/gallery-preparation-namkeen.dim_800x600.jpg",
+  },
+  snacks: {
+    ingredients:
+      "/assets/generated/gallery-ingredients-namkeen.dim_800x600.jpg",
+    preparation:
+      "/assets/generated/gallery-preparation-namkeen.dim_800x600.jpg",
+  },
+  chutney: {
+    ingredients:
+      "/assets/generated/gallery-ingredients-chutney.dim_800x600.jpg",
+    preparation: "/assets/generated/gallery-preparation-pahadi.dim_800x600.jpg",
+  },
+  masala: {
+    ingredients:
+      "/assets/generated/gallery-ingredients-chutney.dim_800x600.jpg",
+    preparation: "/assets/generated/gallery-preparation-pahadi.dim_800x600.jpg",
+  },
+};
+
+const GALLERY_DEFAULTS: ProductGalleryImages = {
+  ingredients: "/assets/generated/gallery-ingredients-namkeen.dim_800x600.jpg",
+  preparation: "/assets/generated/gallery-preparation-namkeen.dim_800x600.jpg",
   uspVsFactory:
-    "/assets/generated/product-usp-homemade-vs-factory.dim_800x600.jpg",
+    "/assets/generated/gallery-usp-homemade-vs-factory.dim_800x600.jpg",
   meetMaker: "/assets/generated/product-meet-maker-anju.dim_800x600.jpg",
 };
+
+// Per-maker meet-maker images
+const MEET_MAKER_IMAGES: Record<string, string> = {
+  Bihar: "/assets/generated/maker-anju.dim_400x500.jpg",
+  Haryana: "/assets/generated/maker-babita.dim_400x500.jpg",
+  Punjab: "/assets/generated/maker-preetkaur.dim_400x500.jpg",
+  "Uttar Pradesh": "/assets/generated/maker-sarla.dim_400x500.jpg",
+  Uttarakhand: "/assets/generated/maker-geeta.dim_400x500.jpg",
+};
+
+export function getProductGalleryImages(
+  category: string,
+  state?: string,
+): ProductGalleryImages {
+  const catLower = category.toLowerCase();
+  const catOverride = GALLERY_IMAGES_BY_CATEGORY[catLower] ?? {};
+  const meetMaker =
+    (state && MEET_MAKER_IMAGES[state]) || GALLERY_DEFAULTS.meetMaker;
+  return {
+    ...GALLERY_DEFAULTS,
+    ...catOverride,
+    meetMaker,
+  };
+}
+
+// Keep old export for any remaining references
+export const PRODUCT_GALLERY_IMAGES = GALLERY_DEFAULTS;
 
 export const STORY_IMAGES = {
   anjuYoung: "/assets/generated/story-anju-young.dim_800x600.jpg",
@@ -107,6 +196,17 @@ export function getProductImage(category: string, name?: string): string {
     const nameLower = name.toLowerCase();
     // Check for specific product name keywords first (longest match wins)
     const nameKeywords = [
+      // Must be before shorter variants
+      "chana jor",
+      "aam papad",
+      "bal mithai",
+      "pahadi aloo",
+      "nam pak",
+      "namak pare",
+      "moong dal",
+      "besan halwa",
+      "besan ka halwa",
+      // Single-word / shorter
       "tilkut",
       "thekua",
       "makhana",
@@ -114,19 +214,16 @@ export function getProductImage(category: string, name?: string): string {
       "khaja",
       "singhara",
       "sattu",
-      "chana jor",
       "laai",
       "anarsa",
       "churma",
       "bajra",
       "kachri",
       "singri",
-      "moong dal",
       "gajak",
       "pinni",
       "wadi",
       "papad",
-      "aam papad",
       "chunda",
       "sarson",
       "saag",
@@ -138,25 +235,25 @@ export function getProductImage(category: string, name?: string): string {
       "besan",
       "buransh",
       "bhang",
-      "bal mithai",
       "jhangora",
       "gahat",
       "timru",
-      "pahadi aloo",
+      "pahadi",
       "singal",
       "kafal",
-      "namak mix",
       "gajar",
       "halwa",
       "mathri",
       "achar",
+      "aloo",
       "ladoo",
       "barfi",
       "chutney",
     ];
     for (const keyword of nameKeywords) {
       if (nameLower.includes(keyword)) {
-        const key = keyword.replace(/ /g, "").replace(" ", "");
+        // Normalize key: remove spaces
+        const key = keyword.replace(/\s+/g, "");
         if (PRODUCT_IMAGES[key]) return PRODUCT_IMAGES[key];
         // Try first word
         const firstWord = keyword.split(" ")[0];

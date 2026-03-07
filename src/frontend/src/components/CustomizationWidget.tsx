@@ -3,16 +3,14 @@ import { useState } from "react";
 
 export interface CustomizationState {
   spiceLevel: string;
-  oilLevel: string;
-  saltLevel: string;
+  dietaryPreference: string;
   sweetnessLevel: string;
   portionSize: string;
 }
 
 const DEFAULT_CUSTOMIZATION: CustomizationState = {
   spiceLevel: "Medium Spice",
-  oilLevel: "Medium Oil",
-  saltLevel: "Medium Salt",
+  dietaryPreference: "Regular",
   sweetnessLevel: "Medium Sweet",
   portionSize: "Medium",
 };
@@ -58,57 +56,42 @@ const SPICE_OPTIONS: RadioOption[] = [
   },
 ];
 
-const OIL_OPTIONS: RadioOption[] = [
+const DIETARY_OPTIONS: RadioOption[] = [
+  {
+    value: "Regular",
+    label: "Regular",
+    sub: "All ingredients",
+    icon: "🍽️",
+    activeColor: "text-saffron",
+    activeBg: "bg-saffron/8",
+    activeBorder: "border-saffron",
+  },
+  {
+    value: "Jain",
+    label: "Jain",
+    sub: "No onion-garlic",
+    icon: "🌱",
+    activeColor: "text-green-700",
+    activeBg: "bg-green-50",
+    activeBorder: "border-green-400",
+  },
+  {
+    value: "Vegan",
+    label: "Vegan",
+    sub: "No dairy or meat",
+    icon: "🥦",
+    activeColor: "text-emerald-700",
+    activeBg: "bg-emerald-50",
+    activeBorder: "border-emerald-400",
+  },
   {
     value: "Low Oil",
     label: "Low Oil",
+    sub: "Minimal oil",
     icon: "💧",
     activeColor: "text-sky-700",
     activeBg: "bg-sky-50",
     activeBorder: "border-sky-400",
-  },
-  {
-    value: "Medium Oil",
-    label: "Medium Oil",
-    icon: "💦",
-    activeColor: "text-amber-700",
-    activeBg: "bg-amber-50",
-    activeBorder: "border-amber-400",
-  },
-  {
-    value: "High Oil",
-    label: "High Oil",
-    icon: "🫗",
-    activeColor: "text-orange-700",
-    activeBg: "bg-orange-50",
-    activeBorder: "border-orange-400",
-  },
-];
-
-const SALT_OPTIONS: RadioOption[] = [
-  {
-    value: "Low Salt",
-    label: "Low Salt",
-    icon: "🔵",
-    activeColor: "text-blue-700",
-    activeBg: "bg-blue-50",
-    activeBorder: "border-blue-400",
-  },
-  {
-    value: "Medium Salt",
-    label: "Medium Salt",
-    icon: "⚪",
-    activeColor: "text-slate-700",
-    activeBg: "bg-slate-50",
-    activeBorder: "border-slate-400",
-  },
-  {
-    value: "High Salt",
-    label: "High Salt",
-    icon: "🟤",
-    activeColor: "text-stone-700",
-    activeBg: "bg-stone-100",
-    activeBorder: "border-stone-400",
   },
 ];
 
@@ -311,21 +294,11 @@ export function CustomizationWidget({
         <div className="border-t border-saffron/10" />
 
         <RadioGroup
-          id="oil"
-          label="🫗 Oil Level"
-          options={OIL_OPTIONS}
-          value={state.oilLevel}
-          onChange={(v) => update("oilLevel", v)}
-        />
-
-        <div className="border-t border-saffron/10" />
-
-        <RadioGroup
-          id="salt"
-          label="🧂 Salt Level"
-          options={SALT_OPTIONS}
-          value={state.saltLevel}
-          onChange={(v) => update("saltLevel", v)}
+          id="dietary"
+          label="🌿 Dietary Preference"
+          options={DIETARY_OPTIONS}
+          value={state.dietaryPreference}
+          onChange={(v) => update("dietaryPreference", v)}
         />
 
         {showSweetness && (
@@ -360,8 +333,7 @@ export function CustomizationWidget({
         <div className="flex flex-wrap gap-x-3 gap-y-1">
           {[
             state.spiceLevel,
-            state.oilLevel,
-            state.saltLevel,
+            state.dietaryPreference,
             ...(showSweetness ? [state.sweetnessLevel] : []),
             state.portionSize,
           ].map((val) => (

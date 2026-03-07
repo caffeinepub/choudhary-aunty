@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  PRODUCT_GALLERY_IMAGES,
   WHATSAPP_NUMBER,
+  getProductGalleryImages,
   getProductImage,
 } from "@/constants/images";
 import type { LocalProduct } from "@/constants/localData";
@@ -60,8 +60,7 @@ export default function ProductDetailPage() {
 
   const [customization, setCustomization] = useState<CustomizationState>({
     spiceLevel: "Medium Spice",
-    oilLevel: "Medium Oil",
-    saltLevel: "Medium Salt",
+    dietaryPreference: "Regular",
     sweetnessLevel: "Medium Sweet",
     portionSize: "Medium",
   });
@@ -91,7 +90,7 @@ export default function ProductDetailPage() {
     setCustomization((prev) => ({
       ...prev,
       spiceLevel: customerAccount.spicePreference || prev.spiceLevel,
-      oilLevel: customerAccount.oilPreference || prev.oilLevel,
+      dietaryPreference: prev.dietaryPreference,
       sweetnessLevel:
         customerAccount.sweetnessPreference || prev.sweetnessLevel,
     }));
@@ -108,8 +107,8 @@ export default function ProductDetailPage() {
         product.id,
         1,
         customization.spiceLevel,
-        customization.oilLevel,
-        customization.saltLevel,
+        customization.dietaryPreference, // maps to oilLevel field in backend
+        "Standard", // saltLevel — deprecated, kept for API compatibility
         customization.sweetnessLevel,
         customization.portionSize,
       );
@@ -143,7 +142,7 @@ export default function ProductDetailPage() {
           customerAccount.state,
           customerAccount.dietType,
           customization.spiceLevel,
-          customization.oilLevel,
+          customization.dietaryPreference, // maps to oilPreference field in backend
           customization.sweetnessLevel,
           newRegion,
         );
@@ -153,14 +152,14 @@ export default function ProductDetailPage() {
         if (saved) {
           const parsed = JSON.parse(saved);
           parsed.spicePreference = customization.spiceLevel;
-          parsed.oilPreference = customization.oilLevel;
+          parsed.dietaryPreference = customization.dietaryPreference;
           parsed.sweetnessPreference = customization.sweetnessLevel;
           parsed.regionPreference = newRegion;
           localStorage.setItem("ca_customer_account", JSON.stringify(parsed));
         }
 
         toast.success("Taste profile updated! 🌶️", {
-          description: `${customization.spiceLevel} · ${customization.oilLevel} · ${customization.saltLevel} saved.`,
+          description: `${customization.spiceLevel} · ${customization.dietaryPreference} saved.`,
         });
       } catch {
         // silently ignore
@@ -184,24 +183,25 @@ export default function ProductDetailPage() {
     };
     const portionLabel =
       portionHints[customization.portionSize] || customization.portionSize;
-    return `Hi! I'd like to order *${product.name}* from Choudhary Aunty.\n\nProduct: ${product.name}\nState: ${product.state}\nPrice: ₹${product.sellingPrice}/500g\nMin Batch: ${product.minBatchKg} kg\n\n🎨 My Cooking Preferences:\n• Spice Level: ${customization.spiceLevel}\n• Oil Level: ${customization.oilLevel}\n• Salt Level: ${customization.saltLevel}\n${sweetnessLine}• Portion Size: ${portionLabel}\n\nPlease guide me on payment and dispatch. 🙏`;
+    return `Hi! I'd like to order *${product.name}* from Choudhary Aunty.\n\nProduct: ${product.name}\nState: ${product.state}\nPrice: ₹${product.sellingPrice}/500g\nMin Batch: ${product.minBatchKg} kg\n\n🎨 My Preferences:\n• Spice Level: ${customization.spiceLevel}\n• Dietary: ${customization.dietaryPreference}\n${sweetnessLine}• Portion Size: ${portionLabel}\n\nPlease guide me on payment and dispatch. 🙏`;
   };
 
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage())}`;
 
   function getGalleryImage(tab: GalleryTab): string {
     if (!product) return "";
+    const gallery = getProductGalleryImages(product.category, product.state);
     switch (tab) {
       case "hero":
         return getProductImage(product.category, product.name);
       case "ingredients":
-        return PRODUCT_GALLERY_IMAGES.ingredients;
+        return gallery.ingredients;
       case "preparation":
-        return PRODUCT_GALLERY_IMAGES.preparation;
+        return gallery.preparation;
       case "usp":
-        return PRODUCT_GALLERY_IMAGES.uspVsFactory;
+        return gallery.uspVsFactory;
       case "maker":
-        return PRODUCT_GALLERY_IMAGES.meetMaker;
+        return gallery.meetMaker;
     }
   }
 
@@ -293,6 +293,10 @@ export default function ProductDetailPage() {
       ? Math.round(((product.mrp - product.sellingPrice) / product.mrp) * 100)
       : 0;
 
+  const productGallery = getProductGalleryImages(
+    product.category,
+    product.state,
+  );
   const caption = getGalleryCaption(activeTab);
   const liquidityBadges = getProductBadgeTypes(product.id);
 
@@ -516,7 +520,7 @@ export default function ProductDetailPage() {
               onChange={setCustomization}
               initialState={{
                 spiceLevel: customerAccount?.spicePreference || "Medium Spice",
-                oilLevel: customerAccount?.oilPreference || "Medium Oil",
+                dietaryPreference: "Regular",
                 sweetnessLevel:
                   customerAccount?.sweetnessPreference || "Medium Sweet",
               }}
@@ -602,7 +606,7 @@ export default function ProductDetailPage() {
           >
             <div className="aspect-[4/3] overflow-hidden">
               <img
-                src={PRODUCT_GALLERY_IMAGES.ingredients}
+                src={productGallery.ingredients}
                 alt="Natural Ingredients"
                 className="w-full h-full object-cover"
               />
@@ -685,7 +689,7 @@ export default function ProductDetailPage() {
             </div>
             <div className="aspect-[4/3] overflow-hidden order-1 lg:order-2">
               <img
-                src={PRODUCT_GALLERY_IMAGES.preparation}
+                src={productGallery.preparation}
                 alt="Traditional Preparation"
                 className="w-full h-full object-cover"
               />
@@ -701,7 +705,7 @@ export default function ProductDetailPage() {
           >
             <div className="aspect-[4/3] overflow-hidden">
               <img
-                src={PRODUCT_GALLERY_IMAGES.uspVsFactory}
+                src={productGallery.uspVsFactory}
                 alt="Homemade vs Factory"
                 className="w-full h-full object-cover"
               />
@@ -812,7 +816,7 @@ export default function ProductDetailPage() {
             </div>
             <div className="aspect-[4/3] overflow-hidden order-1 lg:order-2">
               <img
-                src={PRODUCT_GALLERY_IMAGES.meetMaker}
+                src={productGallery.meetMaker}
                 alt="Meet the Maker"
                 className="w-full h-full object-cover"
               />

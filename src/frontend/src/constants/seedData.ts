@@ -268,7 +268,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     state: "Bihar",
     season: "winter",
     availability: "festival-special",
-    imageUrl: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
+    imageUrl: "/assets/generated/product-laai-bihar.dim_800x600.jpg",
     isAvailable: true,
   },
   {
@@ -319,7 +319,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     state: "Bihar",
     season: "winter",
     availability: "festival-special",
-    imageUrl: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
+    imageUrl: "/assets/generated/product-anarsa-bihar.dim_800x600.jpg",
     isAvailable: true,
   },
 
@@ -653,7 +653,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     state: "Punjab",
     season: "winter",
     availability: "pre-order",
-    imageUrl: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
+    imageUrl: "/assets/generated/product-pinni-punjab.dim_800x600.jpg",
     isAvailable: true,
   },
   {
@@ -804,7 +804,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     state: "Punjab",
     season: "winter",
     availability: "pre-order",
-    imageUrl: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
+    imageUrl: "/assets/generated/product-besan-halwa-punjab.dim_800x600.jpg",
     isAvailable: true,
   },
   {
@@ -888,7 +888,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     state: "Uttar Pradesh",
     season: "all-season",
     availability: "available-today",
-    imageUrl: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
+    imageUrl: "/assets/generated/product-petha-agra-up.dim_800x600.jpg",
     isAvailable: true,
   },
   {
@@ -1215,7 +1215,8 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     state: "Uttarakhand",
     season: "all-season",
     availability: "available-today",
-    imageUrl: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
+    imageUrl:
+      "/assets/generated/product-bal-mithai-uttarakhand.dim_800x600.jpg",
     isAvailable: true,
   },
   {
