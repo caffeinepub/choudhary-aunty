@@ -50,6 +50,7 @@ import { motion } from "motion/react";
 function RootLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <ImageManifest />
       <Navbar />
       <div className="flex-1">
         <Outlet />
@@ -343,7 +344,6 @@ export default function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <ImageManifest />
         <RouterProvider router={router} />
       </AuthProvider>
     </LanguageProvider>

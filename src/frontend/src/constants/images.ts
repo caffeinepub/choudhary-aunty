@@ -93,7 +93,7 @@ export const DEFAULT_PRODUCT_IMAGE =
 export const DEFAULT_MAKER_IMAGE =
   "/assets/generated/maker-anju.dim_400x500.jpg";
 export const LOGO_IMAGE =
-  "/assets/uploads/ChatGPT-Image-Mar-5-2026-01_03_13-PM-1.png";
+  "/assets/generated/logo-choudhary-aunty-transparent.dim_400x120.png";
 export const HERO_IMAGE = "/assets/generated/hero-banner.dim_1400x700.jpg";
 export const INDIA_MAP_IMAGE =
   "/assets/generated/india-map-states.dim_600x700.png";

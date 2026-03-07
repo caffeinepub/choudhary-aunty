@@ -39,6 +39,7 @@ const NAV_LINK_KEYS = [
   { key: "nav.howToOrder", href: "/how-to-order", ocid: "nav.order_link" },
 ];
 
+// Consumer-facing links only — internal/team links are in the footer
 const MORE_LINKS = [
   {
     label: "👩‍🍳 Become an Aunty",
@@ -62,36 +63,6 @@ const MORE_LINKS = [
     label: "👤 My Profile",
     href: "/my-profile",
     ocid: "nav.my_profile_link",
-  },
-  {
-    label: "📢 Advertise",
-    href: "/ads",
-    ocid: "nav.ads_link",
-  },
-  {
-    label: "📊 CRM Portal",
-    href: "/crm",
-    ocid: "nav.crm_more_link",
-  },
-  {
-    label: "📊 Maker Dashboard",
-    href: "/maker-dashboard",
-    ocid: "nav.maker_dashboard_link",
-  },
-  {
-    label: "🖥️ Platform Dashboard",
-    href: "/platform-dashboard",
-    ocid: "nav.platform_dashboard_link",
-  },
-  {
-    label: "📈 Analytics Dashboard",
-    href: "/analytics",
-    ocid: "nav.analytics_link",
-  },
-  {
-    label: "⚖️ Batch Manager",
-    href: "/batch-resolution",
-    ocid: "nav.batch_resolution_link",
   },
 ];
 

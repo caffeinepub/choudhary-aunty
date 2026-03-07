@@ -215,6 +215,57 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Team & Aunty Central — discrete internal access row */}
+        <div className="border-t border-cream/10 pt-4 pb-2">
+          <div className="flex flex-wrap items-center gap-x-1 gap-y-1 justify-center">
+            <span className="text-cream/30 text-[10px] font-body uppercase tracking-widest mr-1">
+              Team Portal
+            </span>
+            {[
+              {
+                label: "Maker Dashboard",
+                href: "/maker-dashboard",
+                ocid: "footer.maker_dashboard_link",
+              },
+              {
+                label: "Platform Dashboard",
+                href: "/platform-dashboard",
+                ocid: "footer.platform_dashboard_link",
+              },
+              { label: "CRM Portal", href: "/crm", ocid: "footer.crm_link" },
+              {
+                label: "Analytics",
+                href: "/analytics",
+                ocid: "footer.analytics_link",
+              },
+              { label: "Ads Manager", href: "/ads", ocid: "footer.ads_link" },
+              {
+                label: "Batch Manager",
+                href: "/batch-resolution",
+                ocid: "footer.batch_link",
+              },
+              {
+                label: "Admin Panel",
+                href: "/admin",
+                ocid: "footer.admin_link",
+              },
+            ].map((link, idx, arr) => (
+              <span key={link.href} className="flex items-center gap-x-1">
+                <Link
+                  to={link.href}
+                  data-ocid={link.ocid}
+                  className="text-cream/35 hover:text-cream/65 text-[10px] font-body transition-colors"
+                >
+                  {link.label}
+                </Link>
+                {idx < arr.length - 1 && (
+                  <span className="text-cream/20 text-[10px]">·</span>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {/* Bottom Bar */}
         <div className="border-t border-cream/15 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-cream/65 text-xs font-body text-center sm:text-left">

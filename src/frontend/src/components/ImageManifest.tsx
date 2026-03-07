@@ -1,11 +1,27 @@
 /**
  * ImageManifest — hidden component that hardcodes every asset path so the
  * Caffeine build pipeline's image-pruning scanner always finds them and
- * never deletes them. Rendered in App.tsx but visually hidden (display:none).
+ * never deletes them. Rendered in App.tsx root layout.
+ *
+ * Uses position:fixed + opacity:0 + pointer-events:none + size:0 so it is
+ * in the DOM but completely invisible and non-interactive.
  */
 export function ImageManifest() {
   return (
-    <div style={{ display: "none" }} aria-hidden="true">
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: 0,
+        height: 0,
+        overflow: "hidden",
+        opacity: 0,
+        pointerEvents: "none",
+        zIndex: -9999,
+      }}
+      aria-hidden="true"
+    >
       {/* Generated images */}
       <img
         src="/assets/generated/ambassador-program-hero.dim_800x500.jpg"
