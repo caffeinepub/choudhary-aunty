@@ -1073,9 +1073,158 @@ function PlatformDashboard() {
                 Rishta Rewards
               </Button>
             </Link>
+            <Link to="/analytics" data-ocid="platform.controls.analytics_link">
+              <Button
+                variant="outline"
+                size="sm"
+                className="font-body text-xs gap-1.5 border-saffron/30 text-saffron hover:bg-saffron/5"
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                Analytics Dashboard
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
+
+      {/* ===== SCALE READINESS SECTION ===== */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(135deg, oklch(0.16 0.04 40) 0%, oklch(0.22 0.06 30) 100%)",
+        }}
+        data-ocid="platform.scale_readiness.section"
+      >
+        <div className="p-6 sm:p-8">
+          {/* Headline */}
+          <div className="mb-6">
+            <span className="inline-flex items-center gap-1.5 text-xs font-body font-semibold text-saffron tracking-[0.25em] uppercase mb-3">
+              <TrendingUp className="w-3.5 h-3.5" />
+              Scale Readiness
+            </span>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-cream leading-tight">
+              Scale to <span className="text-saffron">1 Lakh Chefs</span>
+            </h2>
+            <p className="text-cream/60 font-body text-sm mt-1.5">
+              Architecture designed for 100,000 chefs and millions of customers.
+              Here's where we stand today.
+            </p>
+          </div>
+
+          {/* Progress bar: 5 of 100,000 */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-cream/80 text-xs font-body font-semibold">
+                Chef Growth Journey
+              </span>
+              <span className="text-saffron font-display font-bold text-sm">
+                5 / 100,000
+              </span>
+            </div>
+            <div className="w-full h-3 bg-cream/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-saffron to-amber-400 rounded-full transition-all duration-1000"
+                style={{ width: "0.005%" }}
+              />
+              {/* Minimum visible width for visual feedback */}
+              <div
+                className="h-full bg-gradient-to-r from-saffron to-amber-400 rounded-full -mt-3"
+                style={{ width: "1.5%" }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-1.5">
+              <span className="text-cream/40 text-[10px] font-body">
+                Current: 5 active chefs
+              </span>
+              <span className="text-cream/40 text-[10px] font-body">
+                Target: 1,00,000 chefs
+              </span>
+            </div>
+          </div>
+
+          {/* Metrics grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+            {[
+              {
+                label: "Current Active Chefs",
+                value: "5",
+                sub: "Phase 1 launch",
+                icon: "👩‍🍳",
+              },
+              {
+                label: "Target (Phase 4)",
+                value: "1,00,000",
+                sub: "Across all 28 states",
+                icon: "🎯",
+              },
+              {
+                label: "Capacity per Chef",
+                value: "20 orders/day",
+                sub: "Platform default",
+                icon: "📦",
+              },
+              {
+                label: "Max Daily Order Capacity",
+                value: "20,00,000",
+                sub: "Orders per day at scale",
+                icon: "🚀",
+              },
+              {
+                label: "States Covered (Live)",
+                value: "5 of 28",
+                sub: "North India Phase 1–3",
+                icon: "📍",
+              },
+              {
+                label: "Projected GMV at Scale",
+                value: "₹40 Cr/month",
+                sub: "Conservative estimate",
+                icon: "💰",
+              },
+            ].map((metric) => (
+              <div
+                key={metric.label}
+                className="bg-cream/5 border border-cream/10 rounded-xl p-3 sm:p-4"
+                data-ocid="platform.scale_readiness.card"
+              >
+                <div className="text-xl mb-1.5">{metric.icon}</div>
+                <div className="font-display font-bold text-saffron text-base sm:text-lg leading-tight mb-0.5">
+                  {metric.value}
+                </div>
+                <div className="text-cream font-body text-xs font-semibold leading-tight mb-0.5">
+                  {metric.label}
+                </div>
+                <div className="text-cream/50 font-body text-[10px]">
+                  {metric.sub}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Architecture badges */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { icon: "🌐", label: "ICP — Infinitely Scalable" },
+              { icon: "🗄️", label: "Per-State DB Sharding Ready" },
+              { icon: "⚡", label: "Static Assets CDN Cached" },
+              { icon: "🔒", label: "On-Chain Security" },
+              { icon: "📡", label: "Query + Update Call Architecture" },
+            ].map((badge) => (
+              <span
+                key={badge.label}
+                className="inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full border border-cream/15 bg-cream/5 text-cream/70 font-body font-semibold"
+              >
+                {badge.icon} {badge.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

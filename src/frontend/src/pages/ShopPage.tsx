@@ -1,8 +1,14 @@
 import type { RankedAd } from "@/backend.d";
 import { AvailabilityBadge } from "@/components/AvailabilityBadge";
+import { BatchCountdownBanner } from "@/components/ui/BatchCountdownBanner";
+import {
+  CapacityDot,
+  LiquidityBadge,
+  getProductBadgeTypes,
+} from "@/components/ui/LiquidityBadge";
+import { SkeletonProductCard } from "@/components/ui/SkeletonCard";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { STATES, STATE_BANNERS, getProductImage } from "@/constants/images";
 import type { LocalProduct } from "@/constants/localData";
 import type { AvailabilityType, Season } from "@/constants/seedData";
@@ -15,6 +21,8 @@ import {
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import {
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Filter,
   MapPin,
   Search,
@@ -23,7 +31,7 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface ShopSearch {
   state?: string;
@@ -102,16 +110,53 @@ const SEASON_BADGE: Record<Season, { label: string; cls: string }> = {
   },
 };
 
+const PAGE_SIZE = 12;
+
+// Active chefs per live state
+const CHEF_COUNTS: Record<string, number> = {
+  Bihar: 1,
+  Haryana: 1,
+  Punjab: 1,
+  "Uttar Pradesh": 1,
+  Uttarakhand: 1,
+};
+
 export default function ShopPage() {
   const search = useSearch({ from: "/shop" }) as ShopSearch;
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedSeason, setSelectedSeason] = useState<SeasonFilter>("all");
   const [selectedPriceRange, setSelectedPriceRange] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDiet, setSelectedDiet] = useState("all");
   const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const activeState = search.state ?? "";
+
+  // Debounce search input
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(value);
+      setCurrentPage(1);
+    }, 300);
+  }, []);
+
+  // Reset page when state filter changes (other filters handled via handleSearchChange)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional page reset on filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeState,
+    selectedSeason,
+    selectedPriceRange,
+    selectedCategory,
+    selectedDiet,
+  ]);
 
   useEffect(() => {
     document.title = `Shop ${activeState ? `— ${activeState}` : "All Products"} | Choudhary Aunty`;
@@ -144,9 +189,9 @@ export default function ShopPage() {
 
   const products = rawProducts.filter((p) => {
     const matchesSearch =
-      !searchQuery ||
+      !debouncedSearch ||
       (() => {
-        const q = searchQuery.toLowerCase();
+        const q = debouncedSearch.toLowerCase();
         const ingredientsMatch = Array.isArray((p as LocalProduct).ingredients)
           ? (p as LocalProduct).ingredients.some((ing: string) =>
               ing.toLowerCase().includes(q),
@@ -302,9 +347,9 @@ export default function ShopPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search products..."
+                placeholder="Search products, ingredients, chefs..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-9 font-body"
                 data-ocid="shop.search_input"
               />
@@ -643,36 +688,80 @@ export default function ShopPage() {
             </div>
           )}
 
-          {/* Result count */}
-          {!isLoading && (
-            <p className="text-muted-foreground text-xs font-body mb-4">
-              Showing{" "}
-              <span className="font-semibold text-foreground">
-                {products.length}
-              </span>{" "}
-              product{products.length !== 1 ? "s" : ""}
-            </p>
+          {/* Batch countdown banner */}
+          <BatchCountdownBanner className="rounded-xl mb-4 border border-amber-200" />
+
+          {/* Liquidity signals strip */}
+          {!isLoading && products.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 mb-4 text-xs font-body text-muted-foreground">
+              <span>
+                📦{" "}
+                <span className="font-semibold text-foreground">
+                  {products.length}
+                </span>{" "}
+                products available
+              </span>
+              <span className="text-border">•</span>
+              <span>
+                🔥{" "}
+                <span className="font-semibold text-amber-700">
+                  {Math.max(1, Math.floor(products.length * 0.1))} trending
+                </span>{" "}
+                this week
+              </span>
+              <span className="text-border">•</span>
+              <span className="font-semibold text-terracotta">
+                ⏰ Batch closes Friday
+              </span>
+              {activeState && CHEF_COUNTS[activeState] !== undefined && (
+                <>
+                  <span className="text-border">•</span>
+                  <span>
+                    👩‍🍳{" "}
+                    <span className="font-semibold text-foreground">
+                      {CHEF_COUNTS[activeState]} active chef
+                      {CHEF_COUNTS[activeState] !== 1 ? "s" : ""}
+                    </span>{" "}
+                    in {activeState}
+                  </span>
+                </>
+              )}
+            </div>
           )}
+
+          {/* Result count + pagination info */}
+          {!isLoading &&
+            products.length > 0 &&
+            (() => {
+              const totalPages = Math.ceil(products.length / PAGE_SIZE);
+              const start = (currentPage - 1) * PAGE_SIZE + 1;
+              const end = Math.min(currentPage * PAGE_SIZE, products.length);
+              return (
+                <p className="text-muted-foreground text-xs font-body mb-4">
+                  Showing{" "}
+                  <span className="font-semibold text-foreground">
+                    {start}–{end}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-semibold text-foreground">
+                    {products.length}
+                  </span>{" "}
+                  product{products.length !== 1 ? "s" : ""}
+                  {totalPages > 1 && (
+                    <span className="ml-1 text-muted-foreground">
+                      (page {currentPage} of {totalPages})
+                    </span>
+                  )}
+                </p>
+              );
+            })()}
 
           {/* Products Grid */}
           {isLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
-              {Array.from({ length: 8 }, (_, i) => `skeleton-${i}`).map(
+              {Array.from({ length: PAGE_SIZE }, (_, i) => `skeleton-${i}`).map(
                 (key) => (
-                  <div
-                    key={key}
-                    className="rounded-2xl overflow-hidden border border-border"
-                  >
-                    <Skeleton
-                      className="aspect-[6/5] w-full"
-                      data-ocid="shop.loading_state"
-                    />
-                    <div className="p-4 space-y-2">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                      <Skeleton className="h-5 w-1/3" />
-                    </div>
-                  </div>
+                  <SkeletonProductCard key={key} />
                 ),
               )}
             </div>
@@ -711,148 +800,251 @@ export default function ShopPage() {
               </button>
             </div>
           ) : (
-            <motion.div
-              variants={container}
-              initial="hidden"
-              animate="show"
-              className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5"
-            >
-              {products.map((product, idx) => {
-                const savings =
-                  product.mrp > product.sellingPrice
-                    ? Math.round(
-                        ((product.mrp - product.sellingPrice) / product.mrp) *
-                          100,
-                      )
-                    : 0;
-                const localProduct = product as LocalProduct;
-                const sponsoredAd = sponsoredMap.get(product.id.toString());
-                return (
+            (() => {
+              const totalPages = Math.ceil(products.length / PAGE_SIZE);
+              const pageProducts = products.slice(
+                (currentPage - 1) * PAGE_SIZE,
+                currentPage * PAGE_SIZE,
+              );
+              return (
+                <>
                   <motion.div
-                    key={product.id.toString()}
-                    variants={item}
-                    onAnimationComplete={() => {
-                      // Fire impression for sponsored products (fire-and-forget)
-                      if (sponsoredAd && actor) {
-                        actor
-                          .recordAdImpression(
-                            sponsoredAd.campaignId,
-                            sponsoredAd.productId,
-                            sponsoredAd.makerId,
-                          )
-                          .catch(() => {
-                            /* silent */
-                          });
-                      }
-                    }}
+                    variants={container}
+                    initial="hidden"
+                    animate="show"
+                    className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5"
                   >
-                    <div
-                      className="group bg-card rounded-2xl border border-border overflow-hidden card-warm shadow-xs h-full flex flex-col"
-                      data-ocid={`shop.product.item.${idx + 1}`}
-                    >
-                      <div className="aspect-[6/5] overflow-hidden relative">
-                        <img
-                          src={getProductImage(product.category, product.name)}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          loading="lazy"
-                        />
-                        {/* Sponsored badge */}
-                        {sponsoredAd && (
-                          <div className="absolute top-2 left-2 z-10">
-                            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border bg-amber-100 text-amber-800 border-amber-300 font-body font-semibold shadow-sm">
-                              ⭐ Sponsored
-                            </span>
-                          </div>
-                        )}
-                        {savings > 0 && (
+                    {pageProducts.map((product, idx) => {
+                      const savings =
+                        product.mrp > product.sellingPrice
+                          ? Math.round(
+                              ((product.mrp - product.sellingPrice) /
+                                product.mrp) *
+                                100,
+                            )
+                          : 0;
+                      const localProduct = product as LocalProduct;
+                      const sponsoredAd = sponsoredMap.get(
+                        product.id.toString(),
+                      );
+                      const badges = getProductBadgeTypes(product.id);
+                      const globalIdx = (currentPage - 1) * PAGE_SIZE + idx + 1;
+                      return (
+                        <motion.div
+                          key={product.id.toString()}
+                          variants={item}
+                          onAnimationComplete={() => {
+                            // Fire impression for sponsored products (fire-and-forget)
+                            if (sponsoredAd && actor) {
+                              actor
+                                .recordAdImpression(
+                                  sponsoredAd.campaignId,
+                                  sponsoredAd.productId,
+                                  sponsoredAd.makerId,
+                                )
+                                .catch(() => {
+                                  /* silent */
+                                });
+                            }
+                          }}
+                        >
                           <div
-                            className={`absolute ${sponsoredAd ? "top-7" : "top-3"} left-3`}
+                            className="group bg-card rounded-2xl border border-border overflow-hidden card-warm shadow-xs h-full flex flex-col"
+                            data-ocid={`shop.product.item.${globalIdx}`}
                           >
-                            <span className="savings-badge">
-                              {savings}% OFF
-                            </span>
-                          </div>
-                        )}
-                        {localProduct.availability && (
-                          <div className="absolute top-3 right-3">
-                            <AvailabilityBadge
-                              availability={
-                                localProduct.availability as AvailabilityType
-                              }
-                            />
-                          </div>
-                        )}
-                        {!product.isAvailable && (
-                          <div className="absolute inset-0 bg-foreground/40 flex items-center justify-center">
-                            <span className="bg-background text-foreground font-semibold text-sm px-3 py-1 rounded-full font-body">
-                              Out of Stock
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-4 flex flex-col flex-1">
-                        <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                          <span className="state-badge">{product.state}</span>
-                          <Badge
-                            variant="outline"
-                            className="text-xs border-border capitalize font-body"
-                          >
-                            {product.category}
-                          </Badge>
-                          {localProduct.season && (
-                            <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full border font-body font-medium ${SEASON_BADGE[localProduct.season].cls}`}
-                            >
-                              {SEASON_BADGE[localProduct.season].label}
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="font-display font-bold text-foreground text-base mb-1 leading-tight">
-                          {product.name}
-                        </h3>
-                        <p className="text-muted-foreground text-xs font-body mb-2">
-                          Min batch: {product.minBatchKg} kg
-                        </p>
-                        <p className="text-muted-foreground text-xs font-body line-clamp-2 flex-1 mb-3">
-                          {product.description}
-                        </p>
-                        {/* Pack size */}
-                        <p className="text-muted-foreground text-xs font-body mb-2 font-medium">
-                          📦 Pack: 500g
-                        </p>
-                        <div className="flex items-center justify-between mt-auto">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <span className="price-selling">
-                                ₹{product.sellingPrice}
-                              </span>
-                              {product.mrp > product.sellingPrice && (
-                                <span className="price-mrp">
-                                  ₹{product.mrp}
-                                </span>
+                            <div className="aspect-[6/5] overflow-hidden relative">
+                              <img
+                                src={getProductImage(
+                                  product.category,
+                                  product.name,
+                                )}
+                                alt={product.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                loading="lazy"
+                              />
+                              {/* Sponsored badge */}
+                              {sponsoredAd && (
+                                <div className="absolute top-2 left-2 z-10">
+                                  <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border bg-amber-100 text-amber-800 border-amber-300 font-body font-semibold shadow-sm">
+                                    ⭐ Sponsored
+                                  </span>
+                                </div>
                               )}
+                              {savings > 0 && (
+                                <div
+                                  className={`absolute ${sponsoredAd ? "top-7" : "top-3"} left-3`}
+                                >
+                                  <span className="savings-badge">
+                                    {savings}% OFF
+                                  </span>
+                                </div>
+                              )}
+                              {localProduct.availability && (
+                                <div className="absolute top-3 right-3">
+                                  <AvailabilityBadge
+                                    availability={
+                                      localProduct.availability as AvailabilityType
+                                    }
+                                  />
+                                </div>
+                              )}
+                              {!product.isAvailable && (
+                                <div className="absolute inset-0 bg-foreground/40 flex items-center justify-center">
+                                  <span className="bg-background text-foreground font-semibold text-sm px-3 py-1 rounded-full font-body">
+                                    Out of Stock
+                                  </span>
+                                </div>
+                              )}
+                              {/* Capacity dot */}
+                              <div className="absolute bottom-2 right-2">
+                                <CapacityDot productId={product.id} />
+                              </div>
                             </div>
-                            {product.mrp > product.sellingPrice && (
-                              <span className="savings-pill">
-                                ✦ Save ₹{product.mrp - product.sellingPrice}
-                              </span>
-                            )}
+                            <div className="p-4 flex flex-col flex-1">
+                              <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                                <span className="state-badge">
+                                  {product.state}
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs border-border capitalize font-body"
+                                >
+                                  {product.category}
+                                </Badge>
+                                {localProduct.season && (
+                                  <span
+                                    className={`text-[10px] px-2 py-0.5 rounded-full border font-body font-medium ${SEASON_BADGE[localProduct.season].cls}`}
+                                  >
+                                    {SEASON_BADGE[localProduct.season].label}
+                                  </span>
+                                )}
+                              </div>
+                              <h3 className="font-display font-bold text-foreground text-base mb-1 leading-tight">
+                                {product.name}
+                              </h3>
+                              <p className="text-muted-foreground text-xs font-body mb-2">
+                                Min batch: {product.minBatchKg} kg
+                              </p>
+                              {/* Liquidity badges */}
+                              <div className="flex flex-wrap gap-1 mb-2">
+                                {badges.trending && (
+                                  <LiquidityBadge type="trending" />
+                                )}
+                                {badges.soldOut && (
+                                  <LiquidityBadge type="sold-out" />
+                                )}
+                              </div>
+                              <p className="text-muted-foreground text-xs font-body line-clamp-2 flex-1 mb-3">
+                                {product.description}
+                              </p>
+                              {/* Pack size */}
+                              <p className="text-muted-foreground text-xs font-body mb-2 font-medium">
+                                📦 Pack: 500g
+                              </p>
+                              <div className="flex items-center justify-between mt-auto">
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="price-selling">
+                                      ₹{product.sellingPrice}
+                                    </span>
+                                    {product.mrp > product.sellingPrice && (
+                                      <span className="price-mrp">
+                                        ₹{product.mrp}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {product.mrp > product.sellingPrice && (
+                                    <span className="savings-pill">
+                                      ✦ Save ₹
+                                      {product.mrp - product.sellingPrice}
+                                    </span>
+                                  )}
+                                </div>
+                                <Link
+                                  to="/product/$id"
+                                  params={{ id: product.id.toString() }}
+                                  className="inline-flex items-center gap-1 text-saffron hover:text-terracotta text-sm font-semibold font-body transition-colors"
+                                >
+                                  View <ArrowRight className="w-3.5 h-3.5" />
+                                </Link>
+                              </div>
+                            </div>
                           </div>
-                          <Link
-                            to="/product/$id"
-                            params={{ id: product.id.toString() }}
-                            className="inline-flex items-center gap-1 text-saffron hover:text-terracotta text-sm font-semibold font-body transition-colors"
-                          >
-                            View <ArrowRight className="w-3.5 h-3.5" />
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
+                        </motion.div>
+                      );
+                    })}
                   </motion.div>
-                );
-              })}
-            </motion.div>
+
+                  {/* Pagination controls */}
+                  {totalPages > 1 && (
+                    <div
+                      className="flex items-center justify-center gap-3 mt-8"
+                      data-ocid="shop.pagination"
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
+                        disabled={currentPage === 1}
+                        data-ocid="shop.pagination_prev"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold font-body border border-border bg-background text-foreground/70 hover:border-saffron/40 hover:text-saffron transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft className="w-4 h-4" /> Previous
+                      </button>
+
+                      <div className="flex items-center gap-1.5">
+                        {Array.from(
+                          { length: totalPages },
+                          (_, i) => i + 1,
+                        ).map((page) => (
+                          <button
+                            key={page}
+                            type="button"
+                            onClick={() => setCurrentPage(page)}
+                            data-ocid="shop.pagination.page_button"
+                            className={`w-8 h-8 rounded-full text-xs font-semibold font-body transition-all border ${
+                              page === currentPage
+                                ? "bg-saffron text-cream border-saffron shadow-warm"
+                                : "bg-background text-foreground/70 border-border hover:border-saffron/40 hover:text-saffron"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
+                        disabled={currentPage === totalPages}
+                        data-ocid="shop.pagination_next"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold font-body border border-border bg-background text-foreground/70 hover:border-saffron/40 hover:text-saffron transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Next <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Load More (fallback) */}
+                  {totalPages > 1 && currentPage < totalPages && (
+                    <div className="text-center mt-4">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => p + 1)}
+                        data-ocid="shop.load_more_button"
+                        className="text-saffron hover:text-terracotta text-xs font-semibold font-body underline underline-offset-2 transition-colors"
+                      >
+                        Load more products (
+                        {products.length - currentPage * PAGE_SIZE} remaining)
+                      </button>
+                    </div>
+                  )}
+                </>
+              );
+            })()
           )}
         </div>
       </section>

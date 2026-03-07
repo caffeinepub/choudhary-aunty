@@ -187,6 +187,24 @@ const PREF_OPTIONS = {
   region: ["Bihar", "Haryana", "Punjab", "Uttar Pradesh", "Uttarakhand", ""],
 };
 
+// Map state/region to cuisine label
+function getCuisineFromRegion(region: string): string {
+  const map: Record<string, string> = {
+    Bihar: "Bihari Cuisine",
+    Haryana: "Haryanvi Cuisine",
+    Punjab: "Punjabi Cuisine",
+    "Uttar Pradesh": "Awadhi / UP Cuisine",
+    Uttarakhand: "Pahadi Cuisine",
+    Rajasthan: "Rajasthani Cuisine",
+    Gujarat: "Gujarati Cuisine",
+    Maharashtra: "Maharashtrian Cuisine",
+    "West Bengal": "Bengali Cuisine",
+    north: "North Indian",
+    south: "South Indian",
+  };
+  return map[region] || (region ? region : "All India");
+}
+
 const SAVED_MAKERS_KEY = "choudhary_saved_makers";
 
 export default function MyProfilePage() {
@@ -493,6 +511,7 @@ export default function MyProfilePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="bg-white rounded-3xl border border-amber-100 shadow-warm-lg p-6"
+          data-ocid="profile.taste.panel"
         >
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -500,7 +519,7 @@ export default function MyProfilePage() {
                 🌶️ My Taste Profile
               </h2>
               <p className="text-muted-foreground text-xs font-body">
-                Personalized to your preferences
+                Auto-updated every time you place an order
               </p>
             </div>
             <Button
@@ -510,50 +529,126 @@ export default function MyProfilePage() {
               data-ocid="profile.taste_update_button"
               className="font-body border-saffron/30 text-saffron hover:bg-saffron/5 rounded-xl"
             >
-              Update Taste
+              Edit Taste
             </Button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+          {/* Core Preferences: Spice / Oil / Sweetness / Salt */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
             {[
               {
                 label: "Spice Level",
-                value: customerAccount.spicePreference || "Medium",
+                value: customerAccount.spicePreference || "Medium Spice",
                 icon: "🌶️",
+                showDots: true,
               },
               {
                 label: "Oil Level",
-                value: customerAccount.oilPreference || "Medium",
+                value: customerAccount.oilPreference || "Medium Oil",
                 icon: "🫗",
+                showDots: true,
               },
               {
                 label: "Sweetness",
-                value: customerAccount.sweetnessPreference || "Medium",
+                value: customerAccount.sweetnessPreference || "Medium Sweet",
                 icon: "🍯",
-              },
-              {
-                label: "Region Pref.",
-                value: customerAccount.regionPreference || "All India",
-                icon: "📍",
+                showDots: true,
               },
             ].map((pref) => (
               <div
                 key={pref.label}
                 className="bg-amber-50 border border-amber-100 rounded-2xl p-4"
+                data-ocid={`profile.taste.${pref.label.toLowerCase().replace(/\s+/g, "_")}.card`}
               >
                 <div className="text-2xl mb-2">{pref.icon}</div>
                 <p className="text-xs font-body text-muted-foreground font-semibold uppercase tracking-wider mb-1">
                   {pref.label}
                 </p>
                 <p className="font-body font-semibold text-foreground text-sm">
-                  {pref.value || "Not set"}
+                  {pref.value}
                 </p>
-                {pref.label !== "Region Pref." && (
+                {pref.showDots && (
                   <div className="mt-2">
                     <PreferenceDots level={pref.value} />
                   </div>
                 )}
               </div>
             ))}
+          </div>
+
+          {/* Cuisine + Favourite Dishes */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Preferred Cuisine */}
+            <div
+              className="bg-saffron/6 border border-saffron/15 rounded-2xl p-4"
+              data-ocid="profile.taste.cuisine.card"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">🍛</span>
+                <p className="text-xs font-body text-muted-foreground font-semibold uppercase tracking-wider">
+                  Preferred Cuisine
+                </p>
+              </div>
+              <p className="font-body font-semibold text-foreground text-sm">
+                {getCuisineFromRegion(customerAccount.regionPreference)}
+              </p>
+              <p className="text-[10px] font-body text-muted-foreground mt-1">
+                Based on your order region preferences
+              </p>
+            </div>
+
+            {/* Favourite Dishes — derived from order history */}
+            <div
+              className="bg-red-50/60 border border-red-100 rounded-2xl p-4"
+              data-ocid="profile.taste.favourite_dishes.card"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">❤️</span>
+                <p className="text-xs font-body text-muted-foreground font-semibold uppercase tracking-wider">
+                  Favourite Dishes
+                </p>
+              </div>
+              {orders.length > 0 ? (
+                <div className="space-y-1">
+                  {orders.slice(0, 2).map((o) => {
+                    const name = o.whatsappOrderText
+                      ? o.whatsappOrderText
+                          .split("\n")[0]
+                          .replace("Hi! I'd like to order *", "")
+                          .replace("* from Choudhary Aunty.", "")
+                          .trim()
+                      : `Order #${o.id.toString()}`;
+                    return (
+                      <p
+                        key={o.id.toString()}
+                        className="font-body font-semibold text-foreground text-xs truncate"
+                      >
+                        • {name}
+                      </p>
+                    );
+                  })}
+                  {orders.length > 2 && (
+                    <p className="text-[10px] font-body text-muted-foreground">
+                      +{orders.length - 2} more ordered
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="font-body text-muted-foreground text-xs">
+                  Place your first order to track favourites
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Tip */}
+          <div className="mt-4 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+            <p className="text-xs font-body text-green-700 leading-relaxed">
+              <strong>How it works:</strong> Every time you click "Order on
+              WhatsApp", your spice, oil and sweetness preferences are saved
+              automatically. We use these to personalise product recommendations
+              for you.
+            </p>
           </div>
         </motion.div>
 

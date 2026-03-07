@@ -88,6 +88,16 @@ const MORE_LINKS = [
     href: "/platform-dashboard",
     ocid: "nav.platform_dashboard_link",
   },
+  {
+    label: "📈 Analytics Dashboard",
+    href: "/analytics",
+    ocid: "nav.analytics_link",
+  },
+  {
+    label: "⚖️ Batch Manager",
+    href: "/batch-resolution",
+    ocid: "nav.batch_resolution_link",
+  },
 ];
 
 export default function Navbar() {

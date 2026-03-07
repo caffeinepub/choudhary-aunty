@@ -1,44 +1,32 @@
 # Choudhary Aunty
 
 ## Current State
-A fully built homemade regional food marketplace with:
-- 5 pre-seeded makers, 10 products per state (Bihar fully seeded, others via admin)
-- Customer login, CRM portal, loyalty (Asharfi) system, advertising/promotion engine
-- Basic `/chef-register` page with a single-form application that sends a WhatsApp message
-- Maker dashboard with order queue, earnings, and ad campaigns
-- Admin panel with chef approvals tab (basic) and dish approval tab
+Full marketplace platform with 26 pages including home, shop, product detail, maker profiles, admin panel, CRM, ads, analytics, loyalty program, chef onboarding, and more. Backend has comprehensive Motoko with products, orders, makers, CRM, ad campaigns. Last failed feature: Ethical Batch Resolution System.
 
 ## Requested Changes (Diff)
 
 ### Add
-- **3-step chef onboarding wizard** on `/chef-register`:
-  - Step 1: Personal info (name, phone, email, city, state)
-  - Step 2: Kitchen details (address, cuisine type, years experience, specialty dishes)
-  - Step 3: Kitchen verification (photo upload placeholder, hygiene checklist 5 items, identity verification acknowledgement)
-  - Progress indicator showing step 1/2/3
-  - Final success screen with WhatsApp CTA
-
-- **Chef profile preview card** shown on step 3 (how their public profile will look)
-
-- **Admin Chef Verification Panel** (upgrade existing Admin "Chef Approvals" tab):
-  - List of pending chef applications with full detail drawer
-  - Kitchen hygiene checklist score (out of 5)
-  - Approve / Reject buttons with reason
-  - Status badges: Pending / Approved / Rejected / Under Review
-  - Approved chefs counter and KPI
-
-- **Chef Capacity Settings** (new tab in Maker Dashboard):
-  - Max orders per day slider (1–50)
-  - Max orders per dish input
-  - Preparation time per order selector
-  - Available days toggle (Mon–Sun)
-  - Menu pause / activate toggle
-  - Save button that persists to localStorage
+- `/batch-resolution` page (password-protected: `batch2024`)
+- BatchResolutionPage.tsx with 5 sections:
+  1. KPI strip (Active Batches, At Risk, Merged This Week, Avg Fill Rate)
+  2. Active Batches list with color-coded fill bars and Resolve buttons
+  3. Resolution Workflow Modal with 4-step decision hierarchy (wait → ask maker → admin confirm → merge with compatibility check)
+  4. Batch Traceability Table with batch IDs, multiple-maker badges, certificate viewer
+  5. Customer Notification Generator for merged batches
+- Route added to App.tsx
+- Link in Admin panel quick links and navbar More menu
 
 ### Modify
-- ChefRegisterPage: replace single-form with 3-step wizard (keep WhatsApp CTA on success)
-- AdminPage "Chef Approvals" tab: expand from basic list to full verification workflow
-- MakerDashboardPage: add "Capacity Settings" tab
+- App.tsx: add batchResolutionRoute
+- AdminPage.tsx: add quick link to /batch-resolution
+- Navbar: add "Batch Manager" to More dropdown
 
 ### Remove
-- Nothing removed
+- Nothing
+
+## Implementation Plan
+1. Write BatchResolutionPage.tsx (pure frontend, no new backend APIs needed)
+2. Add route to App.tsx
+3. Add link to AdminPage quick links
+4. Add to Navbar More menu
+5. Validate and deploy

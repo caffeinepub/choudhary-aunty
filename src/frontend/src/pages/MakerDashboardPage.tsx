@@ -264,6 +264,21 @@ function CapacityTab() {
     toast.success("Capacity settings saved!");
   }
 
+  // Live capacity summary from localStorage
+  const maxOrders = settings.maxOrdersPerDay;
+  const ordersToday = (() => {
+    try {
+      const stored = localStorage.getItem("maker_orders_today");
+      return stored ? Number(stored) : 7;
+    } catch {
+      return 7;
+    }
+  })();
+  const remainingSlots = Math.max(0, maxOrders - ordersToday);
+  const isOpen = settings.menuOpen && remainingSlots > 0;
+  const capacityPct =
+    maxOrders > 0 ? Math.round((ordersToday / maxOrders) * 100) : 0;
+
   return (
     <div className="space-y-5">
       <div>
@@ -275,6 +290,75 @@ function CapacityTab() {
           preferences.
         </p>
       </div>
+
+      {/* Live Capacity Status Card */}
+      <Card
+        className={`border-2 shadow-xs ${isOpen ? "border-green-200 bg-green-50/50" : "border-amber-200 bg-amber-50/50"}`}
+        data-ocid="maker.capacity.status_card"
+      >
+        <CardContent className="py-4 px-5">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-display font-bold text-base text-foreground">
+              Your Capacity Status
+            </h4>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-body font-bold border ${
+                isOpen
+                  ? "bg-green-100 text-green-700 border-green-300"
+                  : "bg-red-100 text-red-700 border-red-300"
+              }`}
+            >
+              {isOpen ? "● OPEN" : "● CLOSED"}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            {[
+              {
+                label: "Max orders today",
+                value: maxOrders,
+                color: "text-foreground",
+              },
+              {
+                label: "Orders received today",
+                value: ordersToday,
+                color: "text-saffron",
+              },
+              {
+                label: "Remaining slots",
+                value: remainingSlots,
+                color: remainingSlots === 0 ? "text-red-600" : "text-green-600",
+              },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div
+                  className={`font-display font-bold text-2xl ${stat.color}`}
+                >
+                  {stat.value}
+                </div>
+                <div className="font-body text-xs text-muted-foreground mt-0.5 leading-tight">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Capacity bar */}
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                capacityPct >= 90
+                  ? "bg-red-500"
+                  : capacityPct >= 60
+                    ? "bg-amber-500"
+                    : "bg-green-500"
+              }`}
+              style={{ width: `${capacityPct}%` }}
+            />
+          </div>
+          <p className="text-muted-foreground font-body text-[10px] mt-1.5 text-right">
+            {capacityPct}% capacity used today
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Menu Status */}
       <Card className="border-border shadow-xs">

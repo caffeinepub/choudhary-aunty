@@ -6,6 +6,8 @@ import { LanguageProvider } from "@/hooks/useLanguage";
 import AdCampaignDetailPage from "@/pages/AdCampaignDetailPage";
 import AdminPage from "@/pages/AdminPage";
 import AdsPage from "@/pages/AdsPage";
+import AnalyticsDashboardPage from "@/pages/AnalyticsDashboardPage";
+import BatchResolutionPage from "@/pages/BatchResolutionPage";
 import BecomeAnAuntyPage from "@/pages/BecomeAnAuntyPage";
 import BlogPage from "@/pages/BlogPage";
 import BlogPostPage from "@/pages/BlogPostPage";
@@ -236,6 +238,18 @@ const platformDashboardRoute = createRoute({
   component: PlatformDashboardPage,
 });
 
+const analyticsDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/analytics",
+  component: AnalyticsDashboardPage,
+});
+
+const batchResolutionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/batch-resolution",
+  component: BatchResolutionPage,
+});
+
 // ── Ads Routes ──────────────────────────────────────────────────────────────
 
 const adsRoute = createRoute({
@@ -309,6 +323,8 @@ const routeTree = rootRoute.addChildren([
   makerProfileRoute,
   makerDashboardRoute,
   platformDashboardRoute,
+  analyticsDashboardRoute,
+  batchResolutionRoute,
   adsRoute,
   adCampaignDetailRoute,
   crmRoute,

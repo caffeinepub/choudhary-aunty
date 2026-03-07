@@ -1,5 +1,6 @@
 import type { Product } from "@/backend.d";
 import { AvailabilityBadge } from "@/components/AvailabilityBadge";
+import { BatchCountdownBanner } from "@/components/ui/BatchCountdownBanner";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BLOG_POSTS } from "@/constants/blogData";
@@ -296,6 +297,24 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* ===== BATCH COUNTDOWN STRIP ===== */}
+      <div className="bg-amber-50 border-b border-amber-200">
+        <div className="container mx-auto px-4 sm:px-6 max-w-7xl py-2.5 flex items-center justify-between gap-4">
+          <p className="text-amber-900 text-sm font-body font-medium">
+            <span className="font-semibold">Next batch closes Friday</span> —
+            order now for Monday delivery
+          </p>
+          <Link
+            to="/shop"
+            search={{}}
+            data-ocid="home.batch_cta_link"
+            className="inline-flex items-center gap-1.5 text-saffron hover:text-terracotta text-xs font-semibold font-body whitespace-nowrap transition-colors shrink-0"
+          >
+            Order Now <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+      </div>
 
       {/* ===== PERSONALISED SECTION ===== */}
       {isLoggedIn && customerAccount ? (
@@ -898,6 +917,14 @@ export default function HomePage() {
             >
               {STATES.filter((s) => s.live).map((state) => {
                 const count = getStateCount(state.name);
+                const chefCount = {
+                  Bihar: 1,
+                  Haryana: 1,
+                  Punjab: 1,
+                  "Uttar Pradesh": 1,
+                  Uttarakhand: 1,
+                } as Record<string, number>;
+                const numChefs = chefCount[state.name] ?? 0;
                 return (
                   <motion.div key={state.name} variants={item}>
                     <button
@@ -916,6 +943,11 @@ export default function HomePage() {
                       <p className="text-muted-foreground text-xs font-body">
                         {count > 0 ? `${count} products` : "Available now"}
                       </p>
+                      {numChefs > 0 && (
+                        <p className="text-muted-foreground text-[10px] font-body mt-0.5">
+                          👩‍🍳 {numChefs} active chef{numChefs !== 1 ? "s" : ""}
+                        </p>
+                      )}
                       <div className="mt-3 flex items-center gap-1 text-saffron opacity-0 group-hover:opacity-100 transition-opacity text-xs font-semibold font-body">
                         Explore <ArrowRight className="w-3 h-3" />
                       </div>
@@ -940,14 +972,26 @@ export default function HomePage() {
             >
               {STATES.filter((s) => !s.live).map((state) => (
                 <motion.div key={state.name} variants={item}>
-                  <div className="w-full bg-muted/40 border border-dashed border-border rounded-2xl p-4 text-center opacity-70 cursor-not-allowed">
-                    <div className="text-2xl mb-2">{state.emoji}</div>
+                  <div className="w-full bg-muted/40 border border-dashed border-border rounded-2xl p-3 text-center group hover:border-saffron/30 hover:bg-muted/60 transition-all">
+                    <div className="text-2xl mb-1.5">{state.emoji}</div>
                     <h3 className="font-display font-semibold text-foreground/70 text-xs leading-tight mb-1">
                       {state.name}
                     </h3>
-                    <p className="text-muted-foreground/80 text-[10px] font-body">
+                    <p className="text-muted-foreground/80 text-[10px] font-body mb-1.5">
                       Coming soon
                     </p>
+                    <a
+                      href={buildWhatsAppUrl(
+                        `Hi! I want to be notified when ${state.name} launches on Choudhary Aunty 🍯`,
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-ocid="home.notify_state_link"
+                      className="text-[10px] font-body font-semibold text-saffron hover:text-terracotta transition-colors opacity-0 group-hover:opacity-100"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      🔔 Notify Me
+                    </a>
                   </div>
                 </motion.div>
               ))}

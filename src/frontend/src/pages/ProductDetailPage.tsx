@@ -4,6 +4,12 @@ import {
   CustomizationWidget,
 } from "@/components/CustomizationWidget";
 import ReviewsSection from "@/components/ReviewsSection";
+import { BatchCountdownBanner } from "@/components/ui/BatchCountdownBanner";
+import { DemandAggregationWidget } from "@/components/ui/DemandAggregationWidget";
+import {
+  LiquidityBadge,
+  getProductBadgeTypes,
+} from "@/components/ui/LiquidityBadge";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,7 +63,7 @@ export default function ProductDetailPage() {
     oilLevel: "Medium Oil",
     saltLevel: "Medium Salt",
     sweetnessLevel: "Medium Sweet",
-    portionSize: "Medium (500g)",
+    portionSize: "Medium",
   });
 
   const productQuery = useGetProductById(productId);
@@ -79,8 +85,9 @@ export default function ProductDetailPage() {
   }, [product]);
 
   // Pre-fill from taste profile when logged in
+  const [prefilled, setPrefilled] = useState(false);
   useEffect(() => {
-    if (!isLoggedIn || !customerAccount) return;
+    if (!isLoggedIn || !customerAccount || prefilled) return;
     setCustomization((prev) => ({
       ...prev,
       spiceLevel: customerAccount.spicePreference || prev.spiceLevel,
@@ -88,29 +95,75 @@ export default function ProductDetailPage() {
       sweetnessLevel:
         customerAccount.sweetnessPreference || prev.sweetnessLevel,
     }));
-  }, [isLoggedIn, customerAccount]);
+    setPrefilled(true);
+  }, [isLoggedIn, customerAccount, prefilled]);
 
   async function handleOrderClick() {
-    // Record preference in backend (async, non-blocking)
-    if (actor && product) {
+    if (!actor || !product) return;
+
+    // 1. Record order item with full customization (non-blocking)
+    try {
+      await actor.createOrderItem(
+        BigInt(0), // placeholder order ID until order is confirmed
+        product.id,
+        1,
+        customization.spiceLevel,
+        customization.oilLevel,
+        customization.saltLevel,
+        customization.sweetnessLevel,
+        customization.portionSize,
+      );
+    } catch {
+      // silently ignore — WhatsApp order still goes through
+    }
+
+    // 2. Auto-update taste profile with selections from this order (non-blocking)
+    if (isLoggedIn && customerAccount) {
       try {
-        await actor.createOrderItem(
-          BigInt(0), // placeholder order ID
-          product.id,
-          1,
+        // Derive cuisine/region preference from product state
+        const stateToRegion: Record<string, string> = {
+          Bihar: "Bihar",
+          Haryana: "Haryana",
+          Punjab: "Punjab",
+          "Uttar Pradesh": "Uttar Pradesh",
+          Uttarakhand: "Uttarakhand",
+          Rajasthan: "Rajasthan",
+          Gujarat: "Gujarat",
+          Maharashtra: "Maharashtra",
+          "West Bengal": "West Bengal",
+        };
+        const newRegion =
+          stateToRegion[product.state] || customerAccount.regionPreference;
+
+        await actor.updateMyAccount(
+          customerAccount.name,
+          customerAccount.phone,
+          customerAccount.email,
+          customerAccount.city,
+          customerAccount.state,
+          customerAccount.dietType,
           customization.spiceLevel,
           customization.oilLevel,
-          customization.saltLevel,
           customization.sweetnessLevel,
-          customization.portionSize,
+          newRegion,
         );
-        if (isLoggedIn) {
-          toast.success("Your taste profile has been updated! 🌶️", {
-            description: `${customization.spiceLevel}, ${customization.oilLevel} recorded.`,
-          });
+
+        // Persist to localStorage too so profile page reflects update immediately
+        const saved = localStorage.getItem("ca_customer_account");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          parsed.spicePreference = customization.spiceLevel;
+          parsed.oilPreference = customization.oilLevel;
+          parsed.sweetnessPreference = customization.sweetnessLevel;
+          parsed.regionPreference = newRegion;
+          localStorage.setItem("ca_customer_account", JSON.stringify(parsed));
         }
+
+        toast.success("Taste profile updated! 🌶️", {
+          description: `${customization.spiceLevel} · ${customization.oilLevel} · ${customization.saltLevel} saved.`,
+        });
       } catch {
-        // silently ignore — WhatsApp order still goes through
+        // silently ignore
       }
     }
   }
@@ -123,7 +176,15 @@ export default function ProductDetailPage() {
     const sweetnessLine = isSweetCategory
       ? `• Sweetness: ${customization.sweetnessLevel}\n`
       : "";
-    return `Hi! I'd like to order *${product.name}* from Choudhary Aunty.\n\nProduct: ${product.name}\nState: ${product.state}\nPrice: ₹${product.sellingPrice}\nMin Batch: ${product.minBatchKg} kg\n\n🎨 My Customization:\n• Spice: ${customization.spiceLevel}\n• Oil: ${customization.oilLevel}\n• Salt: ${customization.saltLevel}\n${sweetnessLine}• Portion: ${customization.portionSize}\n\nPlease guide me on the next steps. 🙏`;
+    // Portion size label with size hint
+    const portionHints: Record<string, string> = {
+      Small: "Small (~250g)",
+      Medium: "Medium (~500g)",
+      Large: "Large (~1kg)",
+    };
+    const portionLabel =
+      portionHints[customization.portionSize] || customization.portionSize;
+    return `Hi! I'd like to order *${product.name}* from Choudhary Aunty.\n\nProduct: ${product.name}\nState: ${product.state}\nPrice: ₹${product.sellingPrice}/500g\nMin Batch: ${product.minBatchKg} kg\n\n🎨 My Cooking Preferences:\n• Spice Level: ${customization.spiceLevel}\n• Oil Level: ${customization.oilLevel}\n• Salt Level: ${customization.saltLevel}\n${sweetnessLine}• Portion Size: ${portionLabel}\n\nPlease guide me on payment and dispatch. 🙏`;
   };
 
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage())}`;
@@ -233,6 +294,7 @@ export default function ProductDetailPage() {
       : 0;
 
   const caption = getGalleryCaption(activeTab);
+  const liquidityBadges = getProductBadgeTypes(product.id);
 
   return (
     <main className="min-h-screen pt-16 pb-24 sm:pb-12">
@@ -255,6 +317,9 @@ export default function ProductDetailPage() {
             {product.name}
           </span>
         </nav>
+
+        {/* Batch countdown banner */}
+        <BatchCountdownBanner className="rounded-xl mb-6 border border-amber-200" />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14">
           {/* Left: 5-image gallery */}
@@ -408,10 +473,23 @@ export default function ProductDetailPage() {
               )}
             </div>
 
+            {/* Liquidity badges */}
+            <div className="flex flex-wrap gap-2">
+              {liquidityBadges.trending && <LiquidityBadge type="trending" />}
+              <LiquidityBadge type="ordered-this-week" productId={product.id} />
+              {liquidityBadges.soldOut && <LiquidityBadge type="sold-out" />}
+            </div>
+
             {/* Description */}
             <p className="text-foreground/75 font-body text-base leading-relaxed">
               {product.description}
             </p>
+
+            {/* Demand Aggregation Widget */}
+            <DemandAggregationWidget
+              productId={product.id}
+              minBatchKg={product.minBatchKg}
+            />
 
             {/* Min Batch Info */}
             <div className="bg-saffron/8 border border-saffron/20 rounded-xl p-4">
@@ -436,6 +514,12 @@ export default function ProductDetailPage() {
             <CustomizationWidget
               category={product.category}
               onChange={setCustomization}
+              initialState={{
+                spiceLevel: customerAccount?.spicePreference || "Medium Spice",
+                oilLevel: customerAccount?.oilPreference || "Medium Oil",
+                sweetnessLevel:
+                  customerAccount?.sweetnessPreference || "Medium Sweet",
+              }}
             />
 
             {/* WhatsApp Order Button */}
