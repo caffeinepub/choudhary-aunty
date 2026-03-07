@@ -46,11 +46,6 @@ const MORE_LINKS = [
     ocid: "nav.become_aunty_link",
   },
   {
-    label: "🍳 Become a Chef",
-    href: "/chef-register",
-    ocid: "nav.chef_register_link",
-  },
-  {
     label: "🎁 Gift Hampers",
     href: "/gift-hampers",
     ocid: "nav.gift_hampers_link",

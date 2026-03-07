@@ -1,3 +1,4 @@
+import { ImageManifest } from "@/components/ImageManifest";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import { Toaster } from "@/components/ui/sonner";
@@ -11,7 +12,6 @@ import BatchResolutionPage from "@/pages/BatchResolutionPage";
 import BecomeAnAuntyPage from "@/pages/BecomeAnAuntyPage";
 import BlogPage from "@/pages/BlogPage";
 import BlogPostPage from "@/pages/BlogPostPage";
-import ChefRegisterPage from "@/pages/ChefRegisterPage";
 import CorporateOrdersPage from "@/pages/CorporateOrdersPage";
 import CustomerProfilePage from "@/pages/CustomerProfilePage";
 import GiftHampersPage from "@/pages/GiftHampersPage";
@@ -193,12 +193,6 @@ const becomeAnAuntyRoute = createRoute({
   component: BecomeAnAuntyPage,
 });
 
-const chefRegisterRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/chef-register",
-  component: ChefRegisterPage,
-});
-
 const customerProfileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/customer-profile",
@@ -316,7 +310,6 @@ const routeTree = rootRoute.addChildren([
   blogRoute,
   blogPostRoute,
   becomeAnAuntyRoute,
-  chefRegisterRoute,
   customerProfileRoute,
   myProfileRoute,
   loginRoute,
@@ -350,6 +343,7 @@ export default function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
+        <ImageManifest />
         <RouterProvider router={router} />
       </AuthProvider>
     </LanguageProvider>

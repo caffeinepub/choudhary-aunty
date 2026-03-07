@@ -8,7 +8,7 @@ export const MAKER_IMAGES: Record<string, string> = {
 
 export const PRODUCT_IMAGES: Record<string, string> = {
   achar: "/assets/generated/product-achar.dim_600x500.jpg",
-  pickle: "/assets/generated/product-mixed-vex-pickle.dim_800x600.jpg",
+  pickle: "/assets/generated/product-mixed-veg-pickle.dim_800x600.jpg",
   sweets: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
   ladoo: "/assets/generated/product-ladoo-premium.dim_800x600.jpg",
   namkeen: "/assets/generated/product-namakpara.dim_600x500.jpg",
