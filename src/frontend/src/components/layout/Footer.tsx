@@ -249,6 +249,16 @@ export default function Footer() {
                 href: "/admin",
                 ocid: "footer.admin_link",
               },
+              {
+                label: "Aunty Onboarding",
+                href: "/aunty-onboarding",
+                ocid: "footer.aunty_onboarding_link",
+              },
+              {
+                label: "Aunty Registry",
+                href: "/aunty-registry",
+                ocid: "footer.aunty_registry_link",
+              },
             ].map((link, idx, arr) => (
               <span key={link.href} className="flex items-center gap-x-1">
                 <Link

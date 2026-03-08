@@ -8,6 +8,9 @@ import AdCampaignDetailPage from "@/pages/AdCampaignDetailPage";
 import AdminPage from "@/pages/AdminPage";
 import AdsPage from "@/pages/AdsPage";
 import AnalyticsDashboardPage from "@/pages/AnalyticsDashboardPage";
+import AuntyOnboardingPage from "@/pages/AuntyOnboardingPage";
+import AuntyProfilePage from "@/pages/AuntyProfilePage";
+import AuntyRegistryPage from "@/pages/AuntyRegistryPage";
 import BatchResolutionPage from "@/pages/BatchResolutionPage";
 import BecomeAnAuntyPage from "@/pages/BecomeAnAuntyPage";
 import BlogPage from "@/pages/BlogPage";
@@ -291,6 +294,26 @@ const crmSettingsRoute = createRoute({
   component: CrmSettingsPage,
 });
 
+// ── Aunty Onboarding Routes ──────────────────────────────────────────
+
+const auntyOnboardingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/aunty-onboarding",
+  component: AuntyOnboardingPage,
+});
+
+const auntyRegistryRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/aunty-registry",
+  component: AuntyRegistryPage,
+});
+
+const auntyProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/aunty-profile/$id",
+  component: AuntyProfilePage,
+});
+
 // ============================================
 // ROUTER
 // ============================================
@@ -326,6 +349,9 @@ const routeTree = rootRoute.addChildren([
   crmCampaignsRoute,
   crmAnalyticsRoute,
   crmSettingsRoute,
+  auntyOnboardingRoute,
+  auntyRegistryRoute,
+  auntyProfileRoute,
 ]);
 
 const router = createRouter({
