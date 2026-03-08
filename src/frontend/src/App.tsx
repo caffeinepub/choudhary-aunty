@@ -13,6 +13,10 @@ import AuntyProfilePage from "@/pages/AuntyProfilePage";
 import AuntyRegistryPage from "@/pages/AuntyRegistryPage";
 import BatchResolutionPage from "@/pages/BatchResolutionPage";
 import BecomeAnAuntyPage from "@/pages/BecomeAnAuntyPage";
+import BiharAuntyPage from "@/pages/BiharAuntyPage";
+import BiharProductPage from "@/pages/BiharProductPage";
+import BiharStatePage from "@/pages/BiharStatePage";
+import BiharVariantPage from "@/pages/BiharVariantPage";
 import BlogPage from "@/pages/BlogPage";
 import BlogPostPage from "@/pages/BlogPostPage";
 import CorporateOrdersPage from "@/pages/CorporateOrdersPage";
@@ -314,6 +318,32 @@ const auntyProfileRoute = createRoute({
   component: AuntyProfilePage,
 });
 
+// ── Bihar Marketplace Routes ─────────────────────────────────────────────────
+
+const biharStateRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/state/bihar",
+  component: BiharStatePage,
+});
+
+const biharProductRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/bihar-product/$productId",
+  component: BiharProductPage,
+});
+
+const biharVariantRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/bihar-variant/$variantId",
+  component: BiharVariantPage,
+});
+
+const biharAuntyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/bihar-aunty/$auntyId",
+  component: BiharAuntyPage,
+});
+
 // ============================================
 // ROUTER
 // ============================================
@@ -352,6 +382,10 @@ const routeTree = rootRoute.addChildren([
   auntyOnboardingRoute,
   auntyRegistryRoute,
   auntyProfileRoute,
+  biharStateRoute,
+  biharProductRoute,
+  biharVariantRoute,
+  biharAuntyRoute,
 ]);
 
 const router = createRouter({

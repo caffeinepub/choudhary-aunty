@@ -1,4 +1,3 @@
-import type { Product } from "@/backend.d";
 import { AvailabilityBadge } from "@/components/AvailabilityBadge";
 import { BatchCountdownBanner } from "@/components/ui/BatchCountdownBanner";
 import { Badge } from "@/components/ui/badge";
@@ -13,11 +12,9 @@ import {
   getProductImage,
 } from "@/constants/images";
 import { getMakerStoryByName } from "@/constants/makerStories";
-import { useAuth } from "@/context/AuthContext";
 import { useActor } from "@/hooks/useActor";
 import {
   useGetAllMakers,
-  useGetAllProducts,
   useGetAllTestimonials,
   useGetStateCounts,
 } from "@/hooks/useQueries";
@@ -25,7 +22,6 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
   ChefHat,
-  Gift,
   Heart,
   MessageCircle,
   Play,
@@ -110,56 +106,11 @@ const CUSTOMER_PHOTOS: Record<string, string> = {
   "Sunita Verma": "/assets/generated/customer-sunita.dim_200x200.jpg",
 };
 
-// ─── Rule-based recommendation engine ────────────────────────────────────────
-function getPersonalizedProducts(
-  products: Product[],
-  spice: string,
-  oil: string,
-  sweetness: string,
-  region: string,
-): Product[] {
-  const scored = products.map((p) => {
-    let score = 0;
-    const name = p.name.toLowerCase();
-    const cat = p.category.toLowerCase();
-    if (
-      spice?.toLowerCase().includes("high") &&
-      (name.includes("spicy") || cat.includes("achar"))
-    )
-      score += 3;
-    if (
-      oil?.toLowerCase().includes("low") &&
-      (cat.includes("namkeen") ||
-        cat.includes("snack") ||
-        name.includes("makhana"))
-    )
-      score += 3;
-    if (
-      sweetness?.toLowerCase().includes("high") &&
-      (cat.includes("sweet") ||
-        cat.includes("ladoo") ||
-        cat.includes("barfi") ||
-        name.includes("ladoo"))
-    )
-      score += 3;
-    if (region && p.state?.toLowerCase().includes(region.toLowerCase()))
-      score += 2;
-    if (p.isAvailable) score += 1;
-    return { product: p, score };
-  });
-  return scored
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 4)
-    .map((s) => s.product);
-}
-
 export default function HomePage() {
   const { actor } = useActor();
-  const { customerAccount, isLoggedIn } = useAuth();
   const makersQuery = useGetAllMakers();
   const testimonialsQuery = useGetAllTestimonials();
   const stateCountsQuery = useGetStateCounts();
-  const allProductsQuery = useGetAllProducts();
   const navigate = useNavigate();
 
   // Seed data on first load
@@ -187,17 +138,6 @@ export default function HomePage() {
   const makers = makersQuery.data ?? [];
   const testimonials = testimonialsQuery.data ?? [];
   const stateCounts = stateCountsQuery.data ?? [];
-  const allProducts = allProductsQuery.data ?? [];
-  const personalizedProducts =
-    isLoggedIn && customerAccount
-      ? getPersonalizedProducts(
-          allProducts,
-          customerAccount.spicePreference,
-          customerAccount.oilPreference,
-          customerAccount.sweetnessPreference,
-          customerAccount.regionPreference,
-        )
-      : [];
 
   function getStateCount(stateName: string): number {
     const found = stateCounts.find((s) => s.state === stateName);
@@ -218,7 +158,7 @@ export default function HomePage() {
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-burgundy/90 via-burgundy/50 to-burgundy/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/20" />
 
         {/* Decorative grain */}
         <div className="absolute inset-0 opacity-[0.04] [background-image:url(data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20256%20256%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%221%22%20numOctaves%3D%224%22%20stitchTiles%3D%22stitch%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url%28%23n%29%22%2F%3E%3C%2Fsvg%3E)] pointer-events-none" />
@@ -237,13 +177,13 @@ export default function HomePage() {
               </span>
             </div>
 
-            <h1 className="hero-headline text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-cream mb-4 max-w-3xl">
+            <h1 className="hero-headline text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white mb-4 max-w-3xl drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
               Made This Weekend.
               <br />
-              <span className="text-saffron italic">For You.</span>
+              <span className="text-amber-300 italic">For You.</span>
             </h1>
 
-            <p className="text-cream/90 text-lg sm:text-xl font-body mb-2 max-w-xl leading-relaxed [text-shadow:0_1px_6px_rgba(0,0,0,0.4)]">
+            <p className="text-white/95 text-lg sm:text-xl font-body mb-2 max-w-xl leading-relaxed [text-shadow:0_2px_8px_rgba(0,0,0,0.7)]">
               Not last month. Not last year. This weekend — by a real woman, in
               a real kitchen, from a recipe that's older than any brand you've
               seen on a shelf.
@@ -266,7 +206,7 @@ export default function HomePage() {
                 Our Story
               </Link>
             </div>
-            <p className="text-cream/85 text-xs sm:text-sm font-body italic [text-shadow:0_1px_6px_rgba(0,0,0,0.4)]">
+            <p className="text-white/90 text-xs sm:text-sm font-body italic [text-shadow:0_2px_8px_rgba(0,0,0,0.7)]">
               Order by Friday. Fresh in your hands by Sunday. Pan India
               delivery.
             </p>
@@ -286,10 +226,10 @@ export default function HomePage() {
               { label: "Happy Families", value: "100+" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
-                <div className="font-display text-xl sm:text-2xl font-bold text-saffron">
+                <div className="font-display text-xl sm:text-2xl font-bold text-amber-300 [text-shadow:0_1px_4px_rgba(0,0,0,0.6)]">
                   {stat.value}
                 </div>
-                <div className="text-cream/85 text-xs font-body mt-0.5 [text-shadow:0_1px_4px_rgba(0,0,0,0.5)]">
+                <div className="text-white/90 text-xs font-body mt-0.5 [text-shadow:0_1px_6px_rgba(0,0,0,0.8)]">
                   {stat.label}
                 </div>
               </div>
@@ -315,113 +255,6 @@ export default function HomePage() {
           </Link>
         </div>
       </div>
-
-      {/* ===== PERSONALISED SECTION ===== */}
-      {isLoggedIn && customerAccount ? (
-        personalizedProducts.length > 0 ? (
-          <section className="py-8 sm:py-16 bg-gradient-to-b from-amber-50 to-cream border-b border-amber-100">
-            <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="flex items-center justify-between mb-6"
-              >
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xl">✨</span>
-                    <span className="text-saffron text-xs tracking-[0.3em] uppercase font-body font-semibold">
-                      Just For You
-                    </span>
-                  </div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-                    Aapke Liye Khaas —{" "}
-                    <span className="text-saffron italic">
-                      Made Just For You
-                    </span>
-                  </h2>
-                  <p className="text-muted-foreground text-sm font-body mt-1">
-                    Curated based on your taste preferences,{" "}
-                    {customerAccount.name.split(" ")[0]} ji
-                  </p>
-                </div>
-                <Link
-                  to="/my-profile"
-                  className="text-saffron text-xs font-body font-semibold hover:text-terracotta flex items-center gap-1"
-                >
-                  Update Taste <ArrowRight className="w-3 h-3" />
-                </Link>
-              </motion.div>
-              <motion.div
-                variants={container}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true }}
-                className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-              >
-                {personalizedProducts.map((p, idx) => (
-                  <motion.div key={p.id.toString()} variants={item}>
-                    <Link
-                      to="/product/$id"
-                      params={{ id: p.id.toString() }}
-                      data-ocid={`home.personalized.item.${idx + 1}`}
-                      className="group block bg-white rounded-2xl border border-amber-100 overflow-hidden shadow-xs hover:border-saffron/30 transition-all"
-                    >
-                      <div className="aspect-square overflow-hidden">
-                        <img
-                          src={getProductImage(p.category, p.name)}
-                          alt={p.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="p-3">
-                        <span className="state-badge mb-1.5 inline-block">
-                          {p.state}
-                        </span>
-                        <p className="font-display font-bold text-sm text-foreground leading-tight line-clamp-2 mb-1">
-                          {p.name}
-                        </p>
-                        <p className="text-saffron font-bold text-sm font-body">
-                          ₹{p.sellingPrice}
-                        </p>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
-          </section>
-        ) : null
-      ) : (
-        <section className="py-8 sm:py-12 bg-gradient-to-b from-amber-50/60 to-cream border-b border-amber-100">
-          <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="flex flex-col sm:flex-row items-center gap-6 bg-white rounded-3xl border border-amber-200 p-6 sm:p-8 shadow-warm"
-              data-ocid="home.join_cta_card"
-            >
-              <div className="text-4xl shrink-0">🌶️</div>
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="font-display font-bold text-xl sm:text-2xl text-foreground mb-1">
-                  Get Personalised Recommendations
-                </h2>
-                <p className="text-muted-foreground font-body text-sm">
-                  Join our family to get recipes curated to your taste — spice
-                  level, oil preference, and more.
-                </p>
-              </div>
-              <Link to="/login">
-                <span className="inline-flex items-center gap-2 bg-saffron hover:bg-terracotta text-cream font-semibold px-6 py-3 rounded-full font-body text-sm transition-colors shadow-warm whitespace-nowrap">
-                  Join Our Family <ArrowRight className="w-4 h-4" />
-                </span>
-              </Link>
-            </motion.div>
-          </div>
-        </section>
-      )}
 
       {/* ===== IMPACT NUMBERS MATRIX ===== */}
       <section className="py-10 sm:py-24 deep-section relative overflow-hidden">
@@ -551,229 +384,324 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== PROMOTED CHEFS THIS WEEK ===== */}
-      <section className="py-8 sm:py-14 bg-background border-b border-border">
-        <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+      {/* ===== NO FACTORY FOOD TRUST STRIP ===== */}
+      <section className="py-6 sm:py-8 bg-amber-50 border-y border-amber-200">
+        <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-6 sm:mb-8"
+            transition={{ duration: 0.5 }}
+            className="text-center mb-4"
           >
-            <div className="inline-flex items-center gap-2 bg-amber-100 border border-amber-300 text-amber-800 text-xs px-3 py-1 rounded-full font-body font-semibold mb-3">
-              ⭐ Featured Promotions
-            </div>
-            <h2 className="section-heading text-2xl sm:text-3xl mt-1">
-              Promoted Chefs This Week
+            <h2 className="font-display font-bold text-xl sm:text-2xl text-foreground">
+              No Factory Food
             </h2>
-            <p className="text-muted-foreground font-body text-sm mt-2">
-              Promoted · Limited Slots Available
+            <p className="text-muted-foreground font-body text-sm mt-1">
+              Directly from the world's most hygienic place — the Home Kitchen
             </p>
           </motion.div>
-
           <motion.div
             variants={container}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto"
+            className="grid grid-cols-3 gap-3 sm:gap-6 max-w-2xl mx-auto"
           >
-            {[
-              {
-                name: "Preetkaur Aunty",
-                state: "Punjab",
-                specialty: "Amritsari Pickles & Sweets",
-                whatsapp: "919883140470",
-                tagline: "Dil se banaya, dil tak pahuncha",
-                products: ["Gajak", "Amritsari Achar", "Pinni"],
-                bg: "bg-purple-50",
-                border: "border-purple-200",
-                badge: "bg-purple-100 text-purple-700 border-purple-200",
-              },
-              {
-                name: "Anju Choudhary",
-                state: "Bihar",
-                specialty: "Traditional Bihari Pickles & Mithai",
-                whatsapp: "919883140470",
-                tagline: "Sapne kabhi old nahin hote",
-                products: ["Aam Ka Achar", "Tilkut", "Thekua"],
-                bg: "bg-amber-50",
-                border: "border-amber-200",
-                badge: "bg-amber-100 text-amber-700 border-amber-200",
-              },
-            ].map((chef, idx) => (
-              <motion.div
-                key={chef.name}
-                variants={item}
-                className={`rounded-2xl border-2 border-amber-400 shadow-amber-100 shadow-md p-5 flex flex-col gap-3 ${chef.bg} relative overflow-hidden`}
-                data-ocid={`home.featured_chef.item.${idx + 1}`}
-              >
-                {/* Featured tag */}
-                <div className="absolute top-3 right-3">
-                  <span
-                    className={`text-[11px] px-2.5 py-0.5 rounded-full border font-body font-semibold ${chef.badge}`}
-                  >
-                    ⭐ Featured
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center font-display font-bold text-lg text-amber-700 shrink-0">
-                    {chef.name[0]}
-                  </div>
-                  <div>
-                    <h3 className="font-display font-bold text-base text-foreground">
-                      {chef.name}
-                    </h3>
-                    <p className="font-body text-xs text-muted-foreground flex items-center gap-1">
-                      📍 {chef.state}
-                    </p>
-                    <p className="font-body text-xs text-muted-foreground">
-                      {chef.specialty}
-                    </p>
-                  </div>
-                </div>
-
-                <p className="font-display italic text-sm text-amber-700">
-                  "{chef.tagline}"
-                </p>
-
-                <div className="flex flex-wrap gap-1.5">
-                  {chef.products.map((p) => (
-                    <span
-                      key={p}
-                      className="text-[11px] px-2 py-0.5 rounded-full bg-white/70 border border-amber-200 text-amber-800 font-body font-medium"
-                    >
-                      {p}
-                    </span>
-                  ))}
-                </div>
-
-                <a
-                  href={`https://wa.me/${chef.whatsapp}?text=${encodeURIComponent(`Hi! I'd like to order from ${chef.name}. Please share available products.`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-ocid={`home.featured_chef.whatsapp.${idx + 1}`}
-                  className="inline-flex items-center gap-2 bg-saffron hover:bg-terracotta text-cream text-xs font-semibold px-4 py-2 rounded-full font-body transition-colors w-fit"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="w-3.5 h-3.5 fill-current"
-                    aria-hidden="true"
-                  >
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                  </svg>
-                  Order from {chef.name.split(" ")[0]}
-                </a>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <div className="text-center mt-5">
-            <Link
-              to="/ads"
-              data-ocid="home.advertise_link"
-              className="inline-flex items-center gap-1.5 text-saffron hover:text-terracotta text-sm font-body font-semibold transition-colors"
-            >
-              📢 Promote your products — Advertise on Choudhary Aunty
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== HOW IT WORKS ===== */}
-      <section className="py-8 sm:py-20 mesh-bg">
-        <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-8 sm:mb-12"
-          >
-            <span className="text-saffron text-xs tracking-[0.3em] uppercase font-body font-semibold">
-              The Process
-            </span>
-            <h2 className="section-heading text-3xl sm:text-4xl mt-2">
-              How Your Order Reaches You
-            </h2>
-            <p className="text-muted-foreground font-body mt-3 max-w-xl mx-auto">
-              Fresh, authentic, and made with love — here's how our weekly batch
-              process works
-            </p>
-          </motion.div>
-
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative"
-          >
-            {/* Connecting line */}
-            <div className="hidden sm:block absolute top-8 left-1/4 right-1/4 h-0.5 bg-saffron/20 z-0" />
-
             {[
               {
                 icon: ShoppingBag,
-                step: "01",
-                day: "By Thursday",
-                title: "Browse & Order",
-                desc: "Explore products from our homemakers, pick your favourites, and place your order via WhatsApp by Thursday.",
-                color: "text-saffron",
-                bg: "bg-saffron/10",
+                label: "Order by Thursday",
+                sub: "Place via WhatsApp",
               },
               {
                 icon: ChefHat,
-                step: "02",
-                day: "Weekend",
-                title: "Fresh Preparation",
-                desc: "Your aunty prepares your order fresh from scratch over the weekend using traditional methods and fresh ingredients.",
-                color: "text-terracotta",
-                bg: "bg-terracotta/10",
+                label: "Cooked Fresh",
+                sub: "Home kitchen, weekend batch",
               },
               {
                 icon: Truck,
-                step: "03",
-                day: "Monday Onwards",
-                title: "Dispatched with Love",
-                desc: "After quality check and your final payment confirmation, your order is carefully packed and dispatched to you.",
-                color: "text-warmBrown",
-                bg: "bg-warmBrown/10",
+                label: "Delivered Monday+",
+                sub: "Packed with care, pan India",
               },
-            ].map((step) => (
+            ].map((trust, idx) => (
               <motion.div
-                key={step.step}
+                key={trust.label}
                 variants={item}
-                className="relative z-10 bg-card rounded-2xl p-6 sm:p-8 border border-border card-warm shadow-xs"
+                className="flex flex-col items-center text-center gap-2"
+                data-ocid={`trust.item.${idx + 1}`}
               >
-                <div
-                  className={`w-14 h-14 rounded-2xl ${step.bg} flex items-center justify-center mb-5`}
-                >
-                  <step.icon className={`w-7 h-7 ${step.color}`} />
+                <div className="w-12 h-12 rounded-2xl bg-saffron/10 border border-saffron/20 flex items-center justify-center">
+                  <trust.icon className="w-6 h-6 text-saffron" />
                 </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-bold tracking-widest text-muted-foreground font-body">
-                    STEP {step.step}
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className="text-xs border-saffron/30 text-saffron font-body"
-                  >
-                    {step.day}
-                  </Badge>
+                <div>
+                  <p className="font-display font-bold text-xs sm:text-sm text-foreground leading-tight">
+                    {trust.label}
+                  </p>
+                  <p className="text-muted-foreground text-[10px] sm:text-xs font-body mt-0.5">
+                    {trust.sub}
+                  </p>
                 </div>
-                <h3 className="font-display font-bold text-lg text-foreground mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-muted-foreground text-sm font-body leading-relaxed">
-                  {step.desc}
-                </p>
               </motion.div>
             ))}
           </motion.div>
+        </div>
+      </section>
+
+      {/* ===== BIHAR KI RASOI FEATURE BANNER ===== */}
+      <section className="py-8 sm:py-14 bg-background border-b border-border">
+        <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="relative overflow-hidden rounded-3xl shadow-warm-lg"
+            style={{
+              background:
+                "linear-gradient(135deg, oklch(0.52 0.18 43) 0%, oklch(0.44 0.15 36) 45%, oklch(0.34 0.12 28) 100%)",
+            }}
+            data-ocid="home.bihar_rasoi.panel"
+          >
+            {/* Decorative grain overlay */}
+            <div className="absolute inset-0 opacity-[0.05] [background-image:url(data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20256%20256%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%221%22%20numOctaves%3D%224%22%20stitchTiles%3D%22stitch%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url%28%23n%29%22%2F%3E%3C%2Fsvg%3E)] pointer-events-none" />
+
+            {/* Decorative blobs */}
+            <div className="absolute -top-12 -right-12 w-64 h-64 rounded-full bg-saffron/15 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-12 -left-12 w-56 h-56 rounded-full bg-amber-300/10 blur-3xl pointer-events-none" />
+
+            {/* Large decorative text */}
+            <div className="absolute top-4 right-6 text-[120px] sm:text-[160px] leading-none opacity-[0.07] font-display font-black text-cream select-none pointer-events-none">
+              बिहार
+            </div>
+
+            <div className="relative z-10 p-7 sm:p-12">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8 lg:gap-12">
+                {/* Left: copy */}
+                <div className="flex-1 min-w-0">
+                  {/* Eyebrow */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="bg-green-500 text-white text-[10px] font-bold font-body px-2.5 py-1 rounded-full shadow">
+                      🔴 Now Live
+                    </span>
+                    <span className="text-saffron/80 text-xs tracking-[0.3em] uppercase font-body font-semibold">
+                      State-Based Marketplace
+                    </span>
+                  </div>
+
+                  <h2 className="font-display font-black text-cream text-3xl sm:text-4xl lg:text-5xl leading-tight mb-2">
+                    Choose Your Aunty,
+                    <br />
+                    <span className="text-amber-300 italic">
+                      Order Your Batch.
+                    </span>
+                  </h2>
+
+                  <p className="text-cream/80 font-body text-sm sm:text-base leading-relaxed mb-6 max-w-md">
+                    Bihar's first verified home-kitchen marketplace is live.
+                    Browse traditional recipes, pick your variant, and{" "}
+                    <strong className="text-cream font-semibold">
+                      choose the aunty who prepares your order.
+                    </strong>
+                  </p>
+
+                  {/* Trust pillars */}
+                  <div className="flex flex-wrap gap-3 sm:gap-4 mb-7">
+                    {[
+                      { icon: "🏠", label: "Home Kitchen Only" },
+                      { icon: "👩‍🍳", label: "Verified Aunties" },
+                      { icon: "📦", label: "2 kg Minimum Batch" },
+                    ].map((trust) => (
+                      <div
+                        key={trust.label}
+                        className="flex items-center gap-2 bg-cream/10 border border-cream/20 rounded-xl px-3 py-2 backdrop-blur-sm"
+                      >
+                        <span className="text-base leading-none">
+                          {trust.icon}
+                        </span>
+                        <span className="text-cream/90 text-xs font-body font-semibold whitespace-nowrap">
+                          {trust.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                  <Link
+                    to="/state/bihar"
+                    data-ocid="home.bihar_rasoi.primary_button"
+                    className="inline-flex items-center gap-2.5 bg-amber-300 hover:bg-amber-200 text-burgundy font-bold px-7 py-3.5 rounded-full transition-all duration-200 hover:scale-[1.03] font-body text-sm shadow-warm-lg"
+                  >
+                    Explore Bihar ki Rasoi
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+
+                {/* Right: stat cards */}
+                <div className="flex-shrink-0 grid grid-cols-3 lg:grid-cols-1 gap-3 w-full lg:w-40">
+                  {[
+                    { value: "8", label: "Products" },
+                    { value: "6", label: "Aunties" },
+                    { value: "3", label: "Regions" },
+                  ].map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="bg-cream/10 border border-cream/20 rounded-2xl p-3 sm:p-4 text-center backdrop-blur-sm"
+                    >
+                      <div className="font-display font-black text-amber-300 text-2xl sm:text-3xl leading-none">
+                        {stat.value}
+                      </div>
+                      <div className="text-cream/75 text-[11px] font-body mt-1">
+                        {stat.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== SHOP BY STATE ===== */}
+      <section className="py-8 sm:py-12 bg-background border-b border-border">
+        <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center justify-between mb-5"
+          >
+            <div>
+              <span className="text-saffron text-xs tracking-[0.3em] uppercase font-body font-semibold">
+                Regional Flavours
+              </span>
+              <h2 className="section-heading text-2xl sm:text-3xl mt-1">
+                Shop by State
+              </h2>
+            </div>
+            <Link
+              to="/shop"
+              search={{}}
+              className="text-saffron text-xs font-body font-semibold hover:text-terracotta flex items-center gap-1 whitespace-nowrap"
+            >
+              View All <ArrowRight className="w-3 h-3" />
+            </Link>
+          </motion.div>
+
+          {/* Live States — compact grid */}
+          <div className="mb-5">
+            <p className="text-[10px] font-body font-semibold text-saffron tracking-widest uppercase mb-2">
+              Now Available
+            </p>
+            <motion.div
+              variants={container}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3"
+            >
+              {STATES.filter((s) => s.live).map((state) => {
+                const count = getStateCount(state.name);
+                const chefCount = {
+                  Bihar: 6,
+                  Haryana: 1,
+                  Punjab: 1,
+                  "Uttar Pradesh": 1,
+                  Uttarakhand: 1,
+                } as Record<string, number>;
+                const numChefs = chefCount[state.name] ?? 0;
+                const isBiharLive = state.name === "Bihar";
+                return (
+                  <motion.div key={state.name} variants={item}>
+                    {isBiharLive ? (
+                      <Link
+                        to="/state/bihar"
+                        data-ocid="home.shop_by_state.bihar_link"
+                        className="group w-full bg-card hover:bg-saffron/5 border-2 border-saffron/50 hover:border-saffron rounded-xl p-2.5 sm:p-3 text-left transition-all card-warm shadow-warm relative block"
+                        aria-label="Explore Bihar ki Rasoi"
+                      >
+                        <div className="absolute top-1.5 right-1.5">
+                          <span className="bg-green-500 text-white text-[8px] font-bold font-body px-1.5 py-0.5 rounded-full shadow-sm">
+                            Live
+                          </span>
+                        </div>
+                        <div className="text-2xl mb-1.5">{state.emoji}</div>
+                        <h3 className="font-display font-bold text-foreground text-xs leading-tight mb-0.5">
+                          {state.name}
+                        </h3>
+                        <p className="text-muted-foreground text-[10px] font-body">
+                          {count > 0 ? `${count} products` : "8 products"}
+                        </p>
+                        {numChefs > 0 && (
+                          <p className="text-muted-foreground text-[9px] font-body mt-0.5">
+                            👩‍🍳 {numChefs} aunties
+                          </p>
+                        )}
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate({
+                            to: "/shop",
+                            search: { state: state.name },
+                          })
+                        }
+                        data-ocid="shop.state_tab"
+                        className="group w-full bg-card hover:bg-saffron/5 border border-border hover:border-saffron/40 rounded-xl p-2.5 sm:p-3 text-left transition-all card-warm shadow-xs"
+                        aria-label={`Shop ${state.name} products`}
+                      >
+                        <div className="text-2xl mb-1.5">{state.emoji}</div>
+                        <h3 className="font-display font-bold text-foreground text-xs leading-tight mb-0.5">
+                          {state.name}
+                        </h3>
+                        <p className="text-muted-foreground text-[10px] font-body">
+                          {count > 0 ? `${count} products` : "Available now"}
+                        </p>
+                        {numChefs > 0 && (
+                          <p className="text-muted-foreground text-[9px] font-body mt-0.5">
+                            👩‍🍳 {numChefs} chef{numChefs !== 1 ? "s" : ""}
+                          </p>
+                        )}
+                      </button>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </div>
+
+          {/* Coming Soon — only 4 states */}
+          <div>
+            <p className="text-[10px] font-body font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+              Coming Soon
+            </p>
+            <motion.div
+              variants={container}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="grid grid-cols-4 gap-2 sm:gap-3"
+            >
+              {STATES.filter((s) => !s.live)
+                .slice(0, 4)
+                .map((state) => (
+                  <motion.div key={state.name} variants={item}>
+                    <div className="w-full bg-muted/30 border border-dashed border-border rounded-xl p-2.5 text-center group hover:border-saffron/30 transition-all">
+                      <div className="text-xl mb-1">{state.emoji}</div>
+                      <h3 className="font-display font-semibold text-foreground/60 text-[10px] leading-tight">
+                        {state.name}
+                      </h3>
+                      <p className="text-muted-foreground/70 text-[9px] font-body mt-0.5">
+                        Coming soon
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -878,125 +806,6 @@ export default function HomePage() {
               })}
             </motion.div>
           )}
-        </div>
-      </section>
-
-      {/* ===== SHOP BY STATE ===== */}
-      <section className="py-8 sm:py-20 mesh-bg">
-        <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-10"
-          >
-            <span className="text-saffron text-xs tracking-[0.3em] uppercase font-body font-semibold">
-              Regional Flavours
-            </span>
-            <h2 className="section-heading text-3xl sm:text-4xl mt-1.5">
-              Shop by State
-            </h2>
-            <p className="text-muted-foreground font-body mt-3 max-w-lg mx-auto">
-              Each state has its own food identity. Discover the distinctive
-              flavours from across North India.
-            </p>
-          </motion.div>
-
-          {/* Live States */}
-          <div className="mb-4">
-            <p className="text-xs font-body font-semibold text-saffron tracking-widest uppercase mb-3">
-              Now Available
-            </p>
-            <motion.div
-              variants={container}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"
-            >
-              {STATES.filter((s) => s.live).map((state) => {
-                const count = getStateCount(state.name);
-                const chefCount = {
-                  Bihar: 1,
-                  Haryana: 1,
-                  Punjab: 1,
-                  "Uttar Pradesh": 1,
-                  Uttarakhand: 1,
-                } as Record<string, number>;
-                const numChefs = chefCount[state.name] ?? 0;
-                return (
-                  <motion.div key={state.name} variants={item}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate({ to: "/shop", search: { state: state.name } })
-                      }
-                      data-ocid="shop.state_tab"
-                      className="group w-full bg-card hover:bg-saffron/5 border border-border hover:border-saffron/40 rounded-2xl p-3 sm:p-5 text-left transition-all card-warm shadow-xs"
-                      aria-label={`Shop ${state.name} products`}
-                    >
-                      <div className="text-3xl mb-3">{state.emoji}</div>
-                      <h3 className="font-display font-bold text-foreground text-sm leading-tight mb-1">
-                        {state.name}
-                      </h3>
-                      <p className="text-muted-foreground text-xs font-body">
-                        {count > 0 ? `${count} products` : "Available now"}
-                      </p>
-                      {numChefs > 0 && (
-                        <p className="text-muted-foreground text-[10px] font-body mt-0.5">
-                          👩‍🍳 {numChefs} active chef{numChefs !== 1 ? "s" : ""}
-                        </p>
-                      )}
-                      <div className="mt-3 flex items-center gap-1 text-saffron opacity-0 group-hover:opacity-100 transition-opacity text-xs font-semibold font-body">
-                        Explore <ArrowRight className="w-3 h-3" />
-                      </div>
-                    </button>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          </div>
-
-          {/* Coming Soon States */}
-          <div>
-            <p className="text-xs font-body font-semibold text-muted-foreground tracking-widest uppercase mb-3">
-              Coming Soon — Phase 4 & Beyond
-            </p>
-            <motion.div
-              variants={container}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-              className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3"
-            >
-              {STATES.filter((s) => !s.live).map((state) => (
-                <motion.div key={state.name} variants={item}>
-                  <div className="w-full bg-muted/40 border border-dashed border-border rounded-2xl p-3 text-center group hover:border-saffron/30 hover:bg-muted/60 transition-all">
-                    <div className="text-2xl mb-1.5">{state.emoji}</div>
-                    <h3 className="font-display font-semibold text-foreground/70 text-xs leading-tight mb-1">
-                      {state.name}
-                    </h3>
-                    <p className="text-muted-foreground/80 text-[10px] font-body mb-1.5">
-                      Coming soon
-                    </p>
-                    <a
-                      href={buildWhatsAppUrl(
-                        `Hi! I want to be notified when ${state.name} launches on Choudhary Aunty 🍯`,
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-ocid="home.notify_state_link"
-                      className="text-[10px] font-body font-semibold text-saffron hover:text-terracotta transition-colors opacity-0 group-hover:opacity-100"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      🔔 Notify Me
-                    </a>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
         </div>
       </section>
 
@@ -1357,7 +1166,7 @@ export default function HomePage() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8"
+            className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8"
           >
             {[
               {
@@ -1381,11 +1190,6 @@ export default function HomePage() {
                   "Sarla Maasi's Diwali ladoo ritual — 40 years in the making ✨",
                 gradient: "from-rose-900 via-pink-800 to-stone-900",
                 emoji: "✨",
-              },
-              {
-                caption: "Pahadi flavours with Geeta Devi from Almora 🏔️",
-                gradient: "from-indigo-900 via-purple-800 to-stone-900",
-                emoji: "🏔️",
               },
             ].map((reel, idx) => (
               <motion.a
@@ -1619,84 +1423,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== GIFT HAMPERS TEASER ===== */}
-      <section className="py-8 sm:py-20 deep-section relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-saffron blur-3xl" />
-        </div>
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 max-w-6xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -24 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7 }}
-            >
-              <span className="text-saffron text-xs tracking-[0.3em] uppercase font-body font-semibold mb-3 block">
-                Curated with Love
-              </span>
-              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-cream mb-6 leading-tight">
-                Make Someone's Day{" "}
-                <span className="text-saffron italic">Truly Special</span>
-              </h2>
-              <div className="space-y-4 mb-8">
-                {[
-                  {
-                    icon: Heart,
-                    title: "Curated with Love",
-                    desc: "Each hamper is a state-specific flavour journey from a real homemaker",
-                  },
-                  {
-                    icon: ChefHat,
-                    title: "Delivered Fresh",
-                    desc: "Made to order — never sitting in a warehouse. Prepared fresh that week",
-                  },
-                  {
-                    icon: Truck,
-                    title: "Available Pan India",
-                    desc: "We ship to every corner of India with careful, temperature-considerate packing",
-                  },
-                ].map((b) => (
-                  <div key={b.title} className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-saffron/15 flex items-center justify-center shrink-0 mt-0.5">
-                      <b.icon className="w-5 h-5 text-saffron" />
-                    </div>
-                    <div>
-                      <div className="font-display font-bold text-cream text-sm">
-                        {b.title}
-                      </div>
-                      <div className="text-cream/85 text-xs font-body mt-0.5">
-                        {b.desc}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Link
-                to="/gift-hampers"
-                data-ocid="home.gift_hampers_button"
-                className="inline-flex items-center gap-2 bg-saffron hover:bg-terracotta text-cream font-semibold px-7 py-3.5 rounded-full transition-colors font-body shadow-warm-lg"
-              >
-                <Gift className="w-5 h-5" />
-                Explore Gift Hampers
-              </Link>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 24 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
-              <img
-                src="/assets/generated/gift-hamper-hero.dim_800x600.jpg"
-                alt="Choudhary Aunty Gift Hampers"
-                className="rounded-2xl w-full shadow-warm-lg"
-              />
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
       {/* ===== CORPORATE ORDERS STRIP ===== */}
       <section className="py-8 bg-saffron/5 border-y border-saffron/15">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
@@ -1887,6 +1613,10 @@ export default function HomePage() {
                 <h3 className="font-display font-bold text-foreground text-base mb-2">
                   Become Our Ambassador
                 </h3>
+                <p className="text-muted-foreground font-body text-sm italic leading-relaxed mb-4">
+                  "Generations have savoured your recipes in silence. It's time
+                  your name carried as far as your flavours."
+                </p>
                 <ul className="space-y-1.5 mb-4">
                   {[
                     "Share our story in your network & social media",

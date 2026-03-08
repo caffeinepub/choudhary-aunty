@@ -42,6 +42,11 @@ const NAV_LINK_KEYS = [
 // Consumer-facing links only — internal/team links are in the footer
 const MORE_LINKS = [
   {
+    label: "🗺️ Bihar ki Rasoi",
+    href: "/state/bihar",
+    ocid: "nav.bihar_rasoi_link",
+  },
+  {
     label: "👩‍🍳 Become an Aunty",
     href: "/become-an-aunty",
     ocid: "nav.become_aunty_link",

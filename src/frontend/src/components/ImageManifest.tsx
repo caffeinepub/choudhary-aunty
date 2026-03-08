@@ -56,6 +56,10 @@ export function ImageManifest() {
       <img src="/assets/generated/hero-banner.dim_1400x700.jpg" alt="" />
       <img src="/assets/generated/india-map-states.dim_600x700.png" alt="" />
       <img src="/assets/generated/logo-transparent.dim_400x400.png" alt="" />
+      <img
+        src="/assets/generated/logo-choudhary-aunty-transparent.dim_400x120.png"
+        alt=""
+      />
       <img src="/assets/generated/maker-anju.dim_400x500.jpg" alt="" />
       <img src="/assets/generated/maker-babita.dim_400x500.jpg" alt="" />
       <img src="/assets/generated/maker-geeta.dim_400x500.jpg" alt="" />
@@ -320,6 +324,16 @@ export function ImageManifest() {
         src="/assets/generated/gallery-usp-homemade-vs-factory.dim_800x600.jpg"
         alt=""
       />
+      {/* Bihar Aunty portraits */}
+      <img
+        src="/assets/generated/aunty-anju-choudhary.dim_400x400.jpg"
+        alt=""
+      />
+      <img src="/assets/generated/aunty-sunita-devi.dim_400x400.jpg" alt="" />
+      <img src="/assets/generated/aunty-pushpa-rani.dim_400x400.jpg" alt="" />
+      <img src="/assets/generated/aunty-rekha-singh.dim_400x400.jpg" alt="" />
+      <img src="/assets/generated/aunty-meena-kumari.dim_400x400.jpg" alt="" />
+      <img src="/assets/generated/aunty-kamla-devi.dim_400x400.jpg" alt="" />
       {/* Uploaded images */}
       <img
         src="/assets/uploads/ChatGPT-Image-Mar-5-2026-01_03_13-PM-1.png"

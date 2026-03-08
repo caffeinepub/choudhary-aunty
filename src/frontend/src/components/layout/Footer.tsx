@@ -150,8 +150,21 @@ export default function Footer() {
               Shop by State
             </h4>
             <ul className="space-y-2.5">
+              {/* Bihar — LIVE */}
+              <li>
+                <Link
+                  to="/state/bihar"
+                  data-ocid="footer.bihar_state_link"
+                  className="text-cream/75 hover:text-saffron text-sm font-body transition-colors flex items-center gap-1.5"
+                >
+                  Bihar
+                  <span className="inline-flex items-center gap-0.5 text-[9px] font-bold font-body bg-green-500 text-white px-1.5 py-0.5 rounded-full leading-none">
+                    🔴 Live
+                  </span>
+                </Link>
+              </li>
+              {/* Coming Soon states */}
               {[
-                { label: "Bihar", state: "Bihar" },
                 { label: "Haryana", state: "Haryana" },
                 { label: "Punjab", state: "Punjab" },
                 { label: "Uttar Pradesh", state: "Uttar Pradesh" },
@@ -161,9 +174,12 @@ export default function Footer() {
                   <Link
                     to="/shop"
                     search={{ state: item.state }}
-                    className="text-cream/75 hover:text-saffron text-sm font-body transition-colors"
+                    className="text-cream/75 hover:text-saffron text-sm font-body transition-colors flex items-center gap-1.5"
                   >
                     {item.label}
+                    <span className="text-cream/35 text-[10px] font-body italic">
+                      (Coming Soon)
+                    </span>
                   </Link>
                 </li>
               ))}
